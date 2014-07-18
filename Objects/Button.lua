@@ -39,10 +39,6 @@ OnDraw = function(self, x, y)
         _x = math.floor((self.Width - #self.Text) / 2)
     end
 	Drawing.DrawCharacters(x + _x, y, self.Text, txt, bg)
-
-	if self.Momentary and self.Toggle ~= false then
-		self.Bedrock:StartTimer(function()self.Toggle = false end,0.15)
-	end
 end
 
 OnLoad = function(self)
@@ -54,9 +50,13 @@ end
 Click = function(self, event, side, x, y)
 	if self.Visible and not self.IgnoreClick and self.Enabled and event ~= 'mouse_scroll' then
 		if self.OnClick then
-			if self.Toggle ~= nil then
+			if self.Momentary then
+				self.Toggle = true
+				self.Bedrock:StartTimer(function()self.Toggle = false end,0.25)
+			elseif self.Toggle ~= nil then
 				self.Toggle = not self.Toggle
 			end
+
 			self:OnClick(event, side, x, y, self.Toggle)
 		else
 			self.Toggle = not self.Toggle

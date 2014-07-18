@@ -6,87 +6,95 @@
 		  For documentation see the OneOS wiki, github.com/oeed/OneOS/wiki/Bedrock/
 ]]
 
---adds a few debugging things (a draw call counter)
-local isDebug = false
+BasePath = ''
+ProgramPath = nil
 
-local function loadAPI(path)
-	local name = string.match(fs.getName(path), '(%a+)%.?.-')
-	local env = setmetatable({}, { __index = getfenv() })
-	local func, err = loadfile(path)
-	if not func then
-		return false, printError(err)
+function LoadAPIs(self)
+
+	local function loadAPI(path)
+		print('Load: '..path)
+		local name = string.match(fs.getName(path), '(%a+)%.?.-')
+		local env = setmetatable({}, { __index = getfenv() })
+		local func, err = loadfile(path)
+		if not func then
+			return false, printError(err)
+		end
+		setfenv(func, env)
+		func()
+		local api = {}
+		for k,v in pairs(env) do
+			api[k] = v
+		end
+		_G[name] = api
+		return true
 	end
-	setfenv(func, env)
-	func()
-	local api = {}
-	for k,v in pairs(env) do
-		api[k] = v
+
+	local load = loadAPI
+	if OneOS then
+		load = function(p)OneOS.LoadAPI(p, false)end
 	end
-	_G[name] = api
-	return true
-end
 
-local load = loadAPI
-ViewPath = '/System/Views/'
-if OneOS then
-	load = OneOS.LoadAPI
-end
+	local apis = {
+		'Drawing',
+		'Object',
+		'Helpers'
+	}
 
-local apis = {
-	'Drawing',
-	'Object'
-}
+	local objects = {
+		'View',
+		'ScrollView',
+		'Button',
+		'Label',
+		'Separator',
+		'TextBox',
+		'ImageView',
+		'Menu',
+		'Window',
+		'ProgressBar',
+		'ListView',
+		'FileView',
+		'ScrollBar',
+		'CollectionView'
+	}
 
-local objects = {
-	'View',
-	'ScrollView',
-	'Button',
-	'Label',
-	'Separator',
-	'TextBox',
-	'ImageView',
-	'Menu',
-	'Window',
-	'ProgressBar',
-	'ListView',
-	'FileView',
-	'ScrollBar',
-	'CollectionView'
-}
-
-local env = getfenv()
-if not isStartup then
-	ViewPath = 'Views/'
 	for i, v in ipairs(apis) do
-		load('/System/API/'..v..'.lua', false)
-	end
-	for i, v in ipairs(objects) do
-		load('/System/Objects/'..v..'.lua', false)
-		if not env[v] then
-			error('Could not find API: '..v)
-		else
-			env[v].__index = Object
-			if env[v].Inherit then
-				if not getfenv()[env[v].Inherit] then
-					load('System/Objects/'..env[v].Inherit..'.lua')
-				end
-				env[v].__index = getfenv()[env[v].Inherit]
-			end
-			setmetatable(env[v], env[v])
+		load(self.BasePath..'/API/'..v..'.lua')
+		if v == 'Helpers' then
+			self.Helpers = Helpers
 		end
 	end
-	if fs.exists('Objects/') and fs.isDir('Objects/') then
-		for i, v in ipairs(fs.list('Objects/')) do
-			local name = string.match(v, '(%a+)%.?.-')
-			loadAPI('Objects/'..v)
-			env[name].__index = Object
-			if env[name].Inherit then
-				if not getfenv()[env[name].Inherit] then
-					load('Objects/'..env[name].Inherit..'.lua')
+	
+	local env = getfenv()
+
+	local function loadObject(path, isLocal)
+		if isLocal then
+			loadAPI(path)
+		else 
+			load(path)
+		end
+		local name = string.match(fs.getName(path), '(%a+)%.?.-')
+		if env[name].Inherit then
+			if not getfenv()[env[name].Inherit] then	
+				if fs.exists(self.BasePath..'/Objects/'..env[name].Inherit..'.lua') then
+				elseif fs.exists(self.ProgramPath..'/Objects/'..env[name].Inherit..'.lua') then
 				end
-				env[name].__index = getfenv()[env[name].Inherit]
 			end
-			setmetatable(env[name], env[name])
+			env[name].__index = getfenv()[env[name].Inherit]
+		else
+			env[name].__index = Object
+		end
+		setmetatable(env[name], env[name])
+	end
+
+	for i, v in ipairs(objects) do
+		loadObject(self.BasePath..'/Objects/'..v..'.lua')
+	end
+	
+	local privateObjPath = self.ProgramPath..'/Objects/'
+	if fs.exists(privateObjPath) and fs.isDir(privateObjPath) then
+		for i, v in ipairs(fs.list(privateObjPath)) do
+			loadObject(privateObjPath..v, true)
+			env[name].__index = Object
 		end
 	end
 end
@@ -102,6 +110,8 @@ DrawTimer = nil
 DrawTimerExpiry = 0
 
 IsDrawing = false
+
+DefaultView = 'main'
 
 EventHandlers = {
 	
@@ -120,6 +130,11 @@ Timers = {
 }
 
 function Initialise(self)
+	local prgPath = self.ProgramPath or shell.getRunningProgram()
+	local prgName = fs.getName(prgPath)
+	self.ProgramPath = prgPath:sub(1, #prgPath-#prgName-1)
+	self:LoadAPIs()
+	self.ViewPath = self.ProgramPath .. '/Views/'
 	--first, check that the barebones APIs are available
 	local requiredApis = {
 		'Drawing',
@@ -251,10 +266,10 @@ function LoadView(self, name, draw)
 			self.View = View:InitialiseFile(self, view, name)
 			self:ReorderObjects()
 
-			if view.ToolBarColour then
+			if OneOS and view.ToolBarColour then
 				OneOS.ToolBarColour = view.ToolBarColour
 			end
-			if view.ToolBarTextColour then
+			if OneOS and view.ToolBarTextColour then
 				OneOS.ToolBarTextColour = view.ToolBarTextColour
 			end
 			if not self:GetActiveObject() then
@@ -682,21 +697,7 @@ function Draw(self)
 		end
 	elseif not self.View then
 		print('No loaded view. You need to do program:LoadView first.')
-	elseif isDebug then
-		ignored = ignored + 1
 	end	
-
-	if isDebug then
-		local pos = -2
-		if ViewPath == 'Views/' then
-			pos = -4
-		end
-
-		term.setCursorPos(1, Drawing.Screen.Height+pos)
-		term.setBackgroundColour(colours.black)
-		term.setTextColour(colours.white)
-		term.write(drawCalls.. ":" .. ignored)
-	end
 
 	if self:GetActiveObject() and self.CursorPos and type(self.CursorPos[1]) == 'number' and type(self.CursorPos[2]) == 'number' then
 		term.setCursorPos(self.CursorPos[1], self.CursorPos[2])
@@ -720,7 +721,6 @@ function EventHandler(self)
 end
 
 function Run(self, ready)
-
 	for name, events in pairs(eventFuncs) do
 		if self[name] then
 			for i, event in ipairs(events) do
@@ -731,6 +731,11 @@ function Run(self, ready)
 
 	if self.AllowTerminate then
 		self:RegisterEvent('terminate', function()error('Terminated', 0) end)
+	end
+
+	print(self.ViewPath..self.DefaultView..'.lua')
+	if self.DefaultView and self.DefaultView ~= '' and fs.exists(self.ViewPath..self.DefaultView..'.view') then
+		self:LoadView(self.DefaultView)
 	end
 
 	if ready then
@@ -745,155 +750,3 @@ function Run(self, ready)
 		self:EventHandler()
 	end
 end
-
-Helpers = {
-	LongestString = function(input, key, isKey)
-		local length = 0
-		if isKey then
-			for k, v in pairs(input) do
-				local titleLength = string.len(k)
-				if titleLength > length then
-					length = titleLength
-				end
-			end
-		else
-			for i = 1, #input do
-				local value = input[i]
-				if key then
-					if value[key] then
-						value = value[key]
-					else
-						value = ''
-					end
-				end
-				local titleLength = string.len(value)
-				if titleLength > length then
-					length = titleLength
-				end
-			end
-		end
-		return length
-	end,
-	
-	Split = function(str,sep)
-	    sep=sep or'/'
-	    return str:match("(.*"..sep..")")
-	end,
-
-	Extension = function(path, addDot)
-		if not path then
-			return nil
-		elseif not string.find(fs.getName(path), '%.') then
-			if not addDot then
-				return fs.getName(path)
-			else
-				return ''
-			end
-		else
-			local _path = path
-			if path:sub(#path) == '/' then
-				_path = path:sub(1,#path-1)
-			end
-			local extension = _path:gmatch('%.[0-9a-z]+$')()
-			if extension then
-				extension = extension:sub(2)
-			else
-				--extension = nil
-				return ''
-			end
-			if addDot then
-				extension = '.'..extension
-			end
-			return extension:lower()
-		end
-	end,
-
-	RemoveExtension = function(path)
-	--local name = string.match(fs.getName(path), '(%a+)%.?.-')
-		if path:sub(1,1) == '.' then
-			return path
-		end
-		local extension = Helpers.Extension(path)
-		if extension == path then
-			return fs.getName(path)
-		end
-		return string.gsub(path, extension, ''):sub(1, -2)
-	end,
-
-	RemoveFileName = function(path)
-		if string.sub(path, -1) == '/' then
-			path = string.sub(path, 1, -2)
-		end
-		local v = string.match(path, "(.-)([^\\/]-%.?([^%.\\/]*))$")
-		if type(v) == 'string' then
-			return v
-		end
-		return v[1]
-	end,
-
-	TruncateString = function(sString, maxLength)
-		if #sString > maxLength then
-			sString = sString:sub(1,maxLength-3)
-			if sString:sub(-1) == ' ' then
-				sString = sString:sub(1,maxLength-4)
-			end
-			sString = sString  .. '...'
-		end
-		return sString
-	end,
-
-	TruncateStringStart = function(sString, maxLength)
-		local len = #sString
-		if #sString > maxLength then
-			sString = sString:sub(len - maxLength, len - 3)
-			if sString:sub(-1) == ' ' then
-				sString = sString:sub(len - maxLength, len - 4)
-			end
-			sString = '...' .. sString
-		end
-		return sString
-	end,
-
-	WrapText = function(text, maxWidth)
-		local lines = {''}
-	    for word, space in text:gmatch('(%S+)(%s*)') do
-	            local temp = lines[#lines] .. word .. space:gsub('\n','')
-	            if #temp > maxWidth then
-	                    table.insert(lines, '')
-	            end
-	            if space:find('\n') then
-	                    lines[#lines] = lines[#lines] .. word
-	                    
-	                    space = space:gsub('\n', function()
-	                            table.insert(lines, '')
-	                            return ''
-	                    end)
-	            else
-	                    lines[#lines] = lines[#lines] .. word .. space
-	            end
-	    end
-		return lines
-	end,
-
-	TidyPath = function(path)
-		path = '/'..path
-		if fs.exists(path) and fs.isDir(path) then
-			path = path .. '/'
-		end
-
-		path, n = path:gsub("//", "/")
-		while n > 0 do
-			path, n = path:gsub("//", "/")
-		end
-		return path
-	end,
-
-	Capitalise = function(str)
-		return str:sub(1, 1):upper() .. str:sub(2, -1)
-	end,
-
-	Round = function(num, idp)
-		local mult = 10^(idp or 0)
-		return math.floor(num * mult + 0.5) / mult
-	end
-}
