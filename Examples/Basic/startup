@@ -1,0 +1,5 @@
+local bedrockPath='Bedrock' if OneOS then OneOS.LoadAPI('/System/API/Bedrock.lua', false)elseif fs.exists(bedrockPath)then os.loadAPI(bedrockPath)else if http then print('Downloading Bedrock...')local h=http.get('pastebin...')if h then local f=fs.open(bedrockPath,'w')f.write(h.readAll())f.close()h.close()else error('Failed to download Bedrock. Is your internet working?') end else error('This program needs to download Bedrock to work. Please enable HTTP.') end end
+
+-- local program = Bedrock:Initialise()
+-- program.DefaultView = 'main'
+-- program:Run()
