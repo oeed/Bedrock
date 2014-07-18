@@ -70,9 +70,7 @@ OnKeyChar = function(self, event, keychar)
 				self:OnChange(event, keychar)
 			end
 		elseif keychar == keys.left then
-			--[[
-TODO: behaves odly when the text is too long and arrow keys are pushed
-]]--
+			--TODO: behaves odly when the text is too long and arrow keys are pushed
 			-- Left
 			if self.CursorPos > 0 then
 				self.CursorPos = self.CursorPos - 1

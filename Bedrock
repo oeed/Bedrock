@@ -1,21 +1,19 @@
---[[
-		Bedrock is the core program framework used by all OneOS and OneCode programs.
-							Inspired by Apple's Cocoa framework.
-									   (c) oeed 2014
-
-		  For documentation see the OneOS wiki, github.com/oeed/OneOS/wiki/Bedrock/
-]]
+--
+--		Bedrock is the core program framework used by all OneOS and OneCode programs.
+--							Inspired by Apple's Cocoa framework.
+--									   (c) oeed 2014
+--
+--		  For documentation see the OneOS wiki, github.com/oeed/OneOS/wiki/Bedrock/
+--
 
 BasePath = ''
 ProgramPath = nil
 
 function LoadAPIs(self)
 
-	local function loadAPI(path)
-		print('Load: '..path)
-		local name = string.match(fs.getName(path), '(%a+)%.?.-')
+	local function loadAPI(name, content)
 		local env = setmetatable({}, { __index = getfenv() })
-		local func, err = loadfile(path)
+		local func, err = loadstring(content)
 		if not func then
 			return false, printError(err)
 		end
@@ -29,53 +27,37 @@ function LoadAPIs(self)
 		return true
 	end
 
-	local load = loadAPI
-	if OneOS then
-		load = function(p)OneOS.LoadAPI(p, false)end
-	end
+	-- local apis = {
+	-- 	'Drawing',
+	-- 	'Object',
+	-- 	'Helpers'
+	-- }
 
-	local apis = {
-		'Drawing',
-		'Object',
-		'Helpers'
-	}
+	-- local objects = {
+	-- 	'View',
+	-- 	'ScrollView',
+	-- 	'Button',
+	-- 	'Label',
+	-- 	'Separator',
+	-- 	'TextBox',
+	-- 	'ImageView',
+	-- 	'Menu',
+	-- 	'Window',
+	-- 	'ProgressBar',
+	-- 	'ListView',
+	-- 	'FileView',
+	-- 	'ScrollBar',
+	-- 	'CollectionView'
+	-- }
 
-	local objects = {
-		'View',
-		'ScrollView',
-		'Button',
-		'Label',
-		'Separator',
-		'TextBox',
-		'ImageView',
-		'Menu',
-		'Window',
-		'ProgressBar',
-		'ListView',
-		'FileView',
-		'ScrollBar',
-		'CollectionView'
-	}
 
-	for i, v in ipairs(apis) do
-		load(self.BasePath..'/API/'..v..'.lua')
-		if v == 'Helpers' then
-			self.Helpers = Helpers
-		end
-	end
-	
 	local env = getfenv()
-
-	local function loadObject(path, isLocal)
-		if isLocal then
-			loadAPI(path)
-		else 
-			load(path)
-		end
-		local name = string.match(fs.getName(path), '(%a+)%.?.-')
+	local function loadObject(name, content)
+		loadAPI(name, content)
 		if env[name].Inherit then
 			if not getfenv()[env[name].Inherit] then	
-				if fs.exists(self.BasePath..'/Objects/'..env[name].Inherit..'.lua') then
+				if objects[env[name].Inherit] then
+					loadObject(env[name].Inherit, objects[env[name].Inherit])
 				elseif fs.exists(self.ProgramPath..'/Objects/'..env[name].Inherit..'.lua') then
 				end
 			end
@@ -86,15 +68,24 @@ function LoadAPIs(self)
 		setmetatable(env[name], env[name])
 	end
 
-	for i, v in ipairs(objects) do
-		loadObject(self.BasePath..'/Objects/'..v..'.lua')
+	for k, v in pairs(apis) do
+		loadAPI(k, v)
+		if k == 'Helpers' then
+			self.Helpers = Helpers
+		end
+	end
+
+	for k, v in pairs(objects) do
+		loadObject(k, v)
 	end
 	
 	local privateObjPath = self.ProgramPath..'/Objects/'
 	if fs.exists(privateObjPath) and fs.isDir(privateObjPath) then
 		for i, v in ipairs(fs.list(privateObjPath)) do
-			loadObject(privateObjPath..v, true)
-			env[name].__index = Object
+			local name = string.match(v, '(%a+)%.?.-')
+			local h = fs.open(privateObjPath..v, 'r')
+			loadObject(name, h.readAll())
+			h.close()
 		end
 	end
 end
@@ -181,12 +172,6 @@ function HandleKeyChar(self, event, keychar)
 				--self:Draw()
 			end
 		end
---[[
-	elseif keychar == keys.up then
-		Scroll('mouse_scroll', -1)
-	elseif keychar == keys.down then
-		Scroll('mouse_scroll', 1)
-]]--
 	end
 end
 
@@ -463,12 +448,6 @@ function DisplayWindow(self, _view, title, canClose)
 	_view.Type = 'View'
 	_view.Name = 'View'
 	_view.BackgroundColour = _view.BackgroundColour or colours.white
-	--[[
-print(_view)
-	print(self.Window)
-	print('*****')
-	print(self)
-]]--
 	self.Window:SetView(self:ObjectFromFile(_view, self.Window))
 end
 

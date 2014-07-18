@@ -201,9 +201,6 @@ end
 
 Clear = function (_colour)
 	_colour = _colour or colours.black
-	--[[
-Drawing.ClearBuffer()
-]]--
 	Drawing.DrawBlankArea(1, 1, Drawing.Screen.Width, Drawing.Screen.Height, _colour)
 end
 

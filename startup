@@ -1,1 +1,2 @@
+shell.run('dobuild')
 shell.run('Examples/Basic/startup')

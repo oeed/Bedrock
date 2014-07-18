@@ -1,0 +1,59 @@
+--[[
+	Creates a single file and minified distributable version.
+]]
+
+local api = '--Bedrock Build: '
+
+local h = fs.open('.buildn','r')
+local buildn = tonumber(h.readAll())
+h.close()
+buildn = buildn + 1
+
+local h = fs.open('.buildn','w')
+h.write(tostring(buildn))
+h.close()
+api = api .. buildn .. '\n'
+
+print('Starting Bedrock Build: '..buildn)
+
+function readFile(path)
+	local h = fs.open(path,'r')
+	if h then
+		local file = h.readAll()
+		h.close()
+		return file
+	else
+		error('Failed to open file: '..path)
+	end
+end
+
+function append(str)
+	api = api .. str
+end
+
+append('local apis = {\n')
+
+for i, v in ipairs(fs.list('/API/')) do
+	append('["'..string.match(v, '(%a+)%.?.-')..'"] = [[\n')
+	append(readFile('/API/'..v))
+	append('\n]],\n')
+end
+
+append('}\n')
+
+append('local objects = {\n')
+
+for i, v in ipairs(fs.list('/Objects/')) do
+	append('["'..string.match(v, '(%a+)%.?.-')..'"] = [[\n')
+	append(readFile('/Objects/'..v))
+	append('\n]],\n')
+end
+
+append('}\n')
+
+append(readFile('Bedrock'))
+
+local h = fs.open('Build/Bedrock', 'w')
+h.write(api)
+h.close()
+print('Build completed successfully!')
