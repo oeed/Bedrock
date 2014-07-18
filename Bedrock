@@ -27,30 +27,6 @@ function LoadAPIs(self)
 		return true
 	end
 
-	-- local apis = {
-	-- 	'Drawing',
-	-- 	'Object',
-	-- 	'Helpers'
-	-- }
-
-	-- local objects = {
-	-- 	'View',
-	-- 	'ScrollView',
-	-- 	'Button',
-	-- 	'Label',
-	-- 	'Separator',
-	-- 	'TextBox',
-	-- 	'ImageView',
-	-- 	'Menu',
-	-- 	'Window',
-	-- 	'ProgressBar',
-	-- 	'ListView',
-	-- 	'FileView',
-	-- 	'ScrollBar',
-	-- 	'CollectionView'
-	-- }
-
-
 	local env = getfenv()
 	local function loadObject(name, content)
 		loadAPI(name, content)
@@ -101,6 +77,8 @@ DrawTimer = nil
 DrawTimerExpiry = 0
 
 IsDrawing = false
+
+Running = true
 
 DefaultView = 'main'
 
@@ -649,6 +627,7 @@ OnScroll = nil
 OnViewLoad = nil
 OnViewClose = nil
 OnDraw = nil
+OnQuit = nil
 
 local eventFuncs = {
 	OnClick = {'mouse_click'},
@@ -699,6 +678,16 @@ function EventHandler(self)
 	end
 end
 
+function Quit(self)
+	self.Running = false
+	if self.OnQuit then
+		self:OnQuit()
+	end
+	if OneOS then
+		OneOS.Close()
+	end
+end
+
 function Run(self, ready)
 	for name, events in pairs(eventFuncs) do
 		if self[name] then
@@ -712,7 +701,6 @@ function Run(self, ready)
 		self:RegisterEvent('terminate', function()error('Terminated', 0) end)
 	end
 
-	print(self.ViewPath..self.DefaultView..'.lua')
 	if self.DefaultView and self.DefaultView ~= '' and fs.exists(self.ViewPath..self.DefaultView..'.view') then
 		self:LoadView(self.DefaultView)
 	end
@@ -723,9 +711,7 @@ function Run(self, ready)
 	
 	self:Draw()
 
-	--self:StartRepeatingTimer(function()self:Draw() end, function()return self.DrawSpeed end)
-
-	while true do
+	while self.Running do
 		self:EventHandler()
 	end
 end

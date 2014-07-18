@@ -1,10 +1,5 @@
---Bedrock Build: 7
---This code is squished down in to one, rather hard to read file.
---As such it is not much good for anything other than being used.
---If you want to look at the code to learn from it, copy parts or just take a look,
---you should go to the GitHub repo. http://github.com/oeed/Bedrock/
-local apis = {
-["Drawing"] = [[
+local s={
+["Drawing"]=[[
 local round = function(num, idp)
 	local mult = 10^(idp or 0)
 	return math.floor(num * mult + 0.5) / mult
@@ -302,7 +297,7 @@ EndCopyBuffer = function()
 	return tmpCopy
 end
 ]],
-["Helpers"] = [[
+["Helpers"]=[[
 LongestString = function(input, key, isKey)
 	local length = 0
 	if isKey then
@@ -453,7 +448,7 @@ Round = function(num, idp)
 	return math.floor(num * mult + 0.5) / mult
 end
 ]],
-["Object"] = [[
+["Object"]=[[
 X = 1
 Y = 1
 Width = 1
@@ -625,8 +620,8 @@ function OnUpdate(self, value)
 end
 ]],
 }
-local objects = {
-["Button"] = [[
+local a={
+["Button"]=[[
 BackgroundColour = colours.lightGrey
 ActiveBackgroundColour = colours.blue
 ActiveTextColour = colours.white
@@ -696,7 +691,7 @@ Click = function(self, event, side, x, y)
 	end
 end
 ]],
-["CollectionView"] = [[
+["CollectionView"]=[[
 Inherit = 'ScrollView'
 UpdateDrawBlacklist = {['NeedsItemUpdate']=true}
 
@@ -786,7 +781,7 @@ OnUpdate = function(self, value)
 	end
 end
 ]],
-["ImageView"] = [[
+["ImageView"]=[[
 Image = false
 
 OnDraw = function(self, x, y)
@@ -807,7 +802,7 @@ OnUpdate = function(self, value)
 	end
 end
 ]],
-["Label"] = [[
+["Label"]=[[
 TextColour = colours.black
 BackgroundColour = colours.transparent
 Text = ""
@@ -860,7 +855,7 @@ OnDraw = function(self, x, y)
 	end
 end
 ]],
-["ListView"] = [[
+["ListView"]=[[
 Inherit = 'ScrollView'
 UpdateDrawBlacklist = {['NeedsItemUpdate']=true}
 
@@ -1018,7 +1013,7 @@ OnUpdate = function(self, value)
 	end
 end
 ]],
-["Menu"] = [[
+["Menu"]=[[
 Inherit = 'View'
 
 TextColour = colours.black
@@ -1101,7 +1096,7 @@ OnChildClick = function(self, child, event, side, x, y)
 	self:Close()
 end
 ]],
-["Overlay"] = [[
+["Overlay"]=[[
 Inherit = 'View'
 
 TextColour = colours.black
@@ -1219,7 +1214,7 @@ UpdateButtons = function(self)
 	end
 end
 ]],
-["ProgressBar"] = [[
+["ProgressBar"]=[[
 BackgroundColour = colours.lightGrey
 BarColour = colours.blue
 TextColour = colours.white
@@ -1253,7 +1248,7 @@ OnDraw = function(self, x, y)
 	end
 end
 ]],
-["ScrollBar"] = [[
+["ScrollBar"]=[[
 BackgroundColour = colours.lightGrey
 BarColour = colours.lightBlue
 Scroll = 0
@@ -1332,7 +1327,7 @@ end
 
 OnDrag = OnClick
 ]],
-["ScrollView"] = [[
+["ScrollView"]=[[
 Inherit = 'View'
 ChildOffset = false
 ContentWidth = 0
@@ -1403,7 +1398,7 @@ OnLoad = function(self)
 	end
 end
 ]],
-["SearchView"] = [[
+["SearchView"]=[[
 Inherit = 'View'
 
 BackgroundColour = colours.grey
@@ -1524,7 +1519,7 @@ function UpdateSearch(self)
 	--Draw()
 end
 ]],
-["Separator"] = [[
+["Separator"]=[[
 Colour = colours.grey
 
 OnDraw = function(self, x, y)
@@ -1535,7 +1530,7 @@ OnDraw = function(self, x, y)
 	Drawing.DrawArea(x, y, self.Width, self.Height, char, self.Colour, colours.transparent)
 end
 ]],
-["TextBox"] = [[
+["TextBox"]=[[
 BackgroundColour = colours.lightGrey
 TextColour = colours.black
 PlaceholderTextColour = colours.grey
@@ -1672,7 +1667,7 @@ OnKeyChar = function(self, event, keychar)
 	end
 end
 ]],
-["View"] = [[
+["View"]=[[
 BackgroundColour = colours.transparent
 Children = {}
 
@@ -1868,7 +1863,7 @@ function RemoveAllObjects(self)
 	self:ForceDraw()
 end
 ]],
-["Window"] = [[
+["Window"]=[[
 Inherit = 'View'
 
 ToolBarColour = colours.lightGrey
@@ -1960,720 +1955,607 @@ OnUpdate = function(self, value)
 end
 ]],
 }
---
---		Bedrock is the core program framework used by all OneOS and OneCode programs.
---							Inspired by Apple's Cocoa framework.
---									   (c) oeed 2014
---
---		  For documentation see the OneOS wiki, github.com/oeed/OneOS/wiki/Bedrock/
---
-
-BasePath = ''
-ProgramPath = nil
-
-function LoadAPIs(self)
-
-	local function loadAPI(name, content)
-		local env = setmetatable({}, { __index = getfenv() })
-		local func, err = loadstring(content)
-		if not func then
-			return false, printError(err)
-		end
-		setfenv(func, env)
-		func()
-		local api = {}
-		for k,v in pairs(env) do
-			api[k] = v
-		end
-		_G[name] = api
-		return true
-	end
-
-	local env = getfenv()
-	local function loadObject(name, content)
-		loadAPI(name, content)
-		if env[name].Inherit then
-			if not getfenv()[env[name].Inherit] then	
-				if objects[env[name].Inherit] then
-					loadObject(env[name].Inherit, objects[env[name].Inherit])
-				elseif fs.exists(self.ProgramPath..'/Objects/'..env[name].Inherit..'.lua') then
-				end
-			end
-			env[name].__index = getfenv()[env[name].Inherit]
-		else
-			env[name].__index = Object
-		end
-		setmetatable(env[name], env[name])
-	end
-
-	for k, v in pairs(apis) do
-		loadAPI(k, v)
-		if k == 'Helpers' then
-			self.Helpers = Helpers
-		end
-	end
-
-	for k, v in pairs(objects) do
-		loadObject(k, v)
-	end
-	
-	local privateObjPath = self.ProgramPath..'/Objects/'
-	if fs.exists(privateObjPath) and fs.isDir(privateObjPath) then
-		for i, v in ipairs(fs.list(privateObjPath)) do
-			local name = string.match(v, '(%a+)%.?.-')
-			local h = fs.open(privateObjPath..v, 'r')
-			loadObject(name, h.readAll())
-			h.close()
-		end
-	end
+BasePath=''
+ProgramPath=nil
+function LoadAPIs(o)
+local function n(o,e)
+local t=setmetatable({},{__index=getfenv()})
+local e,a=loadstring(e)
+if not e then
+return false,printError(a)
 end
-
-AllowTerminate = true
-
-View = nil
-Menu = nil
-
-ActiveObject = nil
-
-DrawTimer = nil
-DrawTimerExpiry = 0
-
-IsDrawing = false
-
-Running = true
-
-DefaultView = 'main'
-
-EventHandlers = {
-	
+setfenv(e,t)
+e()
+local e={}
+for t,a in pairs(t)do
+e[t]=a
+end
+_G[o]=e
+return true
+end
+local t=getfenv()
+local function i(e,s)
+n(e,s)
+if t[e].Inherit then
+if not getfenv()[t[e].Inherit]then
+if a[t[e].Inherit]then
+i(t[e].Inherit,a[t[e].Inherit])
+elseif fs.exists(o.ProgramPath..'/Objects/'..t[e].Inherit..'.lua')then
+end
+end
+t[e].__index=getfenv()[t[e].Inherit]
+else
+t[e].__index=Object
+end
+setmetatable(t[e],t[e])
+end
+for e,t in pairs(s)do
+n(e,t)
+if e=='Helpers'then
+o.Helpers=Helpers
+end
+end
+for e,t in pairs(a)do
+i(e,t)
+end
+local e=o.ProgramPath..'/Objects/'
+if fs.exists(e)and fs.isDir(e)then
+for a,t in ipairs(fs.list(e))do
+local a=string.match(t,'(%a+)%.?.-')
+local e=fs.open(e..t,'r')
+i(a,e.readAll())
+e.close()
+end
+end
+end
+AllowTerminate=true
+View=nil
+Menu=nil
+ActiveObject=nil
+DrawTimer=nil
+DrawTimerExpiry=0
+IsDrawing=false
+DefaultView='main'
+EventHandlers={
 }
-
-ObjectClickHandlers = {
-	
+ObjectClickHandlers={
 }
-
-ObjectUpdateHandlers = {
-	
+ObjectUpdateHandlers={
 }
-
-Timers = {
-	
+Timers={
 }
-
-function Initialise(self)
-	local prgPath = self.ProgramPath or shell.getRunningProgram()
-	local prgName = fs.getName(prgPath)
-	self.ProgramPath = prgPath:sub(1, #prgPath-#prgName-1)
-	self:LoadAPIs()
-	self.ViewPath = self.ProgramPath .. '/Views/'
-	--first, check that the barebones APIs are available
-	local requiredApis = {
-		'Drawing',
-		'View'
-	}
-	local env = getfenv()
-	for i,v in ipairs(requiredApis) do
-		if not env[v] then
-			error('The API: '..v..' is not loaded. Please make sure you load it to use Bedrock.')
-		end
-	end
-
-	local copy = { }
-	for k, v in pairs(self) do
-		if k ~= 'Initialise' then
-			copy[k] = v
-		end
-	end
-	return setmetatable(copy, getmetatable(self))
-end
-
-function HandleClick(self, event, side, x, y)
-	if self.Window then
-		if not self.View:CheckClick(self.Window, x, y) then
-			self.Window:Flash()
-		else
-			self.View:DoClick(self.Window, event, side, x, y)
-		end
-	elseif self.Menu then
-		if not self.View:DoClick(self.Menu, event, side, x, y) then
-			self.Menu:Close()
-		end
-	elseif self.View then
-		if self.View:Click(event, side, x, y) ~= false then
-		end		
-	end
-end
-
-function HandleKeyChar(self, event, keychar)
-	if self:GetActiveObject() then
-		local activeObject = self:GetActiveObject()
-		if activeObject.OnKeyChar then
-			if activeObject:OnKeyChar(event, keychar) ~= false then
-				--self:Draw()
-			end
-		end
-	end
-end
-
-function ToggleMenu(self, name, owner, x, y)
-	if self.Menu then
-		self.Menu:Close()
-		return false
-	else
-		self:SetMenu(name, owner, x, y)
-		return true
-	end
-end
-
-function SetMenu(self, menu, owner, x, y)
-	x = x or 1
-	y = y or 1
-	if self.Menu then
-		self.Menu:Close()
-	end	
-	if menu then
-		local pos = owner:GetPosition()
-		self.Menu = self:AddObject(menu, {Type = 'Menu', Owner = owner, X = pos.X + x - 1, Y = pos.Y + y})
-	end
-end
-
-function ObjectClick(self, name, func)
-	self.ObjectClickHandlers[name] = func
-end
-
-function ClickObject(self, object, event, side, x, y)
-	if self.ObjectClickHandlers[object.Name] then
-		return self.ObjectClickHandlers[object.Name](object, event, side, x, y)
-	end
-	return false
-end
-
-function ObjectUpdate(self, name, func)
-	self.ObjectUpdateHandlers[name] = func
-end
-
-function UpdateObject(self, object, ...)
-	if self.ObjectUpdateHandlers[object.Name] then
-		self.ObjectUpdateHandlers[object.Name](object, ...)
-		--self:Draw()
-	end
-end
-
-function GetAbsolutePosition(self, obj)
-	if not obj.Parent then
-		return {X = obj.X, Y = obj.Y}
-	else
-		local pos = self:GetAbsolutePosition(obj.Parent)
-		local x = pos.X + obj.X - 1
-		local y = pos.Y + obj.Y - 1
-		if not obj.Fixed and obj.Parent.ChildOffset then
-			x = x + obj.Parent.ChildOffset.X
-			y = y + obj.Parent.ChildOffset.Y
-		end
-		return {X = x, Y = y}
-	end
-end
-
-function LoadView(self, name, draw)
-	if self.View and self.OnViewClose then
-		self.OnViewClose(self.View.Name)
-	end
-	if self.View then
-		self.View:OnRemove()
-	end
-	local success = false
-
-	local h = fs.open(self.ViewPath..name..'.view', 'r')
-	if h then
-		local view = textutils.unserialize(h.readAll())
-		h.close()
-		if view then
-			self.View = View:InitialiseFile(self, view, name)
-			self:ReorderObjects()
-
-			if OneOS and view.ToolBarColour then
-				OneOS.ToolBarColour = view.ToolBarColour
-			end
-			if OneOS and view.ToolBarTextColour then
-				OneOS.ToolBarTextColour = view.ToolBarTextColour
-			end
-			if not self:GetActiveObject() then
-				self:SetActiveObject()
-			end
-			success = true
-		end
-	end
-
-	if success and self.OnViewLoad then
-		self.OnViewLoad(name)
-	end
-
-	if draw ~= false then
-		self:Draw()
-	end
-
-	if not success then
-		error('Failed to load view: '..name..'. It probably isn\'t formatted correctly.')
-	end
-
-	return success
-end
-
-function InheritFile(self, file, name)
-	local h = fs.open(self.ViewPath..name..'.view', 'r')
-	if h then
-		local super = textutils.unserialize(h.readAll())
-		if super then
-			if type(super) ~= 'table' then
-				error('View: "'..name..'.view" is not formatted correctly.')
-			end
-
-			for k, v in pairs(super) do
-				if not file[k] then
-					file[k] = v
-				end
-			end
-			return file
-		end
-	end
-	return file
-end
-
-function ObjectFromFile(self, file, view)
-	local env = getfenv()
-	if env[file.Type] then
-		if not env[file.Type].Initialise then
-			error('Malformed Object: '..file.Type)
-		end
-		local object = {}
-
-		if file.InheritView then
-			file = self:InheritFile(file, file.InheritView)
-		end
-		
-		object.AutoWidth = true
-		for k, v in pairs(file) do
-			if k == 'Width' or k == 'X' or k == 'Height' or k == 'Y' then
-				local parentSize = view.Width
-				if k == 'Height' or k == 'Y' then
-					parentSize = view.Height
-				end
-				local parts = {v}
-				if type(v) == 'string' and string.find(v, ',') then
-					parts = {}
-					for word in string.gmatch(v, '([^,]+)') do
-					    table.insert(parts, word)
-					end
-				end
-
-				v = 0
-				for i2, part in ipairs(parts) do
-					if type(part) == 'string' and part:sub(#part) == '%' then
-						v = v + math.ceil(parentSize * (tonumber(part:sub(1, #part-1)) / 100))
-					else
-						v = v + tonumber(part)
-					end
-				end
-			end
-
-			if k == 'Width' then
-				object.AutoWidth = false
-			end
-			if k ~= 'Children' then
-				object[k] = v
-			else
-				object[k] = {}
-			end
-		end
-
-		object.Parent = view
-		object.Bedrock = self
-		if not object.Name then
-			object.Name = file.Type
-		end
-
-		object = env[file.Type]:Initialise(object)
-
-		if file.Children then
-			for i, obj in ipairs(file.Children) do
-				local _view = self:ObjectFromFile(obj, object)
-				if not _view.Z then
-					_view.Z = i
-				end
-				_view.Parent = object
-				table.insert(object.Children, _view)
-			end
-		end
-
-		if not object.OnClick then
-			object.OnClick = function(...) return self:ClickObject(...) end
-		end
-		--object.OnUpdate = function(...) self:UpdateObject(...) end
-
-		if object.OnUpdate then
-			for k, v in pairs(env[file.Type]) do
-				object:OnUpdate(k)
-			end
-
-			for k, v in pairs(object.__index) do
-				object:OnUpdate(k)
-			end
-		end
-
-		if object.Active then
-			object.Bedrock:SetActiveObject(object)
-		end
-		if object.OnLoad then
-			object:OnLoad()
-		end
-		return object
-	elseif not file.Type then
-		error('No object type specified. (e.g. Type = "Button")')
-	else
-		error('No Object: '..file.Type..'. The API probably isn\'t loaded')
-	end
-end
-
-function ReorderObjects(self)
-	if self.View and self.View.Children then
-		table.sort(self.View.Children, function(a,b)
-			return a.Z < b.Z 
-		end)
-	end
-end
-
-function AddObject(self, info, extra)
-	return self.View:AddObject(info, extra)
-end
-
-function GetObject(self, name)
-	return self.View:GetObject(name)
-end
-
-function GetObjects(self, name)
-	return self.View:GetObjects(name)
-end
-
-function RemoveObject(self, name)
-	return self.View:RemoveObject(name)
-end
-
-function RemoveObjects(self, name)
-	return self.View:RemoveObjects(name)
-end
-
-function ForceDraw(self)
-	if not self.DrawTimer or self.DrawTimerExpiry <= os.clock() then
-		self.DrawTimer = self:StartTimer(function()
-			self.DrawTimer = nil
-			self:Draw()
-		end, 0.05)
-		self.DrawTimerExpiry = os.clock() + 0.1
-	end
-end
-
-function DisplayWindow(self, _view, title, canClose)
-	if canClose == nil then
-		canClose = true
-	end
-	if type(_view) == 'string' then
-		local h = fs.open(self.ViewPath.._view..'.view', 'r')
-		if h then
-			_view = textutils.unserialize(h.readAll())
-			h.close()
-		end
-	end
-
-	self.Window = self:AddObject({Type = 'Window', Z = 999, Title = title, CanClose = canClose})
-	_view.Type = 'View'
-	_view.Name = 'View'
-	_view.BackgroundColour = _view.BackgroundColour or colours.white
-	self.Window:SetView(self:ObjectFromFile(_view, self.Window))
-end
-
-function DisplayAlertWindow(self, title, text, buttons, callback)
-	local func = function(btn)
-		self.Window:Close()
-		if callback then
-			callback(btn.Text)
-		end
-	end
-	local children = {}
-	local usedX = -1
-	if buttons then
-		for i, text in ipairs(buttons) do
-			usedX = usedX + 3 + #text
-			table.insert(children, {
-				["Y"]="100%,-1",
-				["X"]="100%,-"..usedX,
-				["Name"]=text.."Button",
-				["Type"]="Button",
-				["Text"]=text,
-				OnClick = func
-			})
-		end
-	end
-
-	local width = usedX + 2
-	if width < 28 then
-		width = 28
-	end
-
-	local canClose = true
-	if buttons and #buttons~=0 then
-		canClose = false
-	end
-
-	local height = #Helpers.WrapText(text, width - 2)
-	table.insert(children, {
-		["Y"]=2,
-		["X"]=2,
-		["Width"]="100%,-2",
-		["Height"]=height,
-		["Name"]="Label",
-		["Type"]="Label",
-		["Text"]=text
-	})
-	local view = {
-		Children = children,
-		Width=width,
-		Height=3+height+(canClose and 0 or 1),
-		OnKeyChar = function(_view, keychar)
-			func({Text=buttons[1]})
-		end
-	}
-	self:DisplayWindow(view, title, canClose)
-end
-
-function DisplayTextBoxWindow(self, title, text, callback, textboxText, cursorAtEnd)
-	textboxText = textboxText or ''
-	local func = function(btn)
-		self.Window:Close()
-		if callback then
-			callback(btn.Text)
-		end
-	end
-	local children = {
-		{
-			["Y"]="100%,-1",
-			["X"]="100%,-4",
-			["Name"]="OkButton",
-			["Type"]="Button",
-			["Text"]="Ok",
-			OnClick = function()
-				local text = self.Window:GetObject('TextBox').Text
-				self.Window:Close()
-				callback(true, text)
-			end
-		},
-		{
-			["Y"]="100%,-1",
-			["X"]="100%,-13",
-			["Name"]="CancelButton",
-			["Type"]="Button",
-			["Text"]="Cancel",
-			OnClick = function()
-				self.Window:Close()
-				callback(false)
-			end
-		}
-	}
-
-	local height = -1
-	if text and #text ~= 0 then
-		height = #Helpers.WrapText(text, 26)
-		table.insert(children, {
-			["Y"]=2,
-			["X"]=2,
-			["Width"]="100%,-2",
-			["Height"]=height,
-			["Name"]="Label",
-			["Type"]="Label",
-			["Text"]=text
-		})
-	end
-	table.insert(children,
-		{
-			["Y"]=3+height,
-			["X"]=2,
-			["Width"]="100%,-2",
-			["Name"]="TextBox",
-			["Type"]="TextBox",
-			["Text"]=textboxText,
-			["CursorPos"]=(cursorAtEnd and 0 or nil)
-		})
-	local view = {
-		Children = children,
-		Width=28,
-		Height=5+height+(canClose and 0 or 1),
-	}
-	self:DisplayWindow(view, title)
-	self.Window:GetObject('TextBox').OnUpdate = function(txtbox, keychar)
-		if keychar == keys.enter then
-			self.Window:Close()
-			callback(true, txtbox.Text)
-		end
-	end
-	self:SetActiveObject(self.Window:GetObject('TextBox'))
-	self.Window.OnCloseButton = function()callback(false)end
-end
-
-function RegisterEvent(self, event, func)
-	if not self.EventHandlers[event] then
-		self.EventHandlers[event] = {}
-	end
-	table.insert(self.EventHandlers[event], func)
-end
-
-function StartRepeatingTimer(self, func, interval)
-	local int = interval
-	if type(int) == 'function' then
-		int = int()
-	end
-	if not int or int <= 0 then
-		return
-	end
-	local timer = os.startTimer(int)
-
-	self.Timers[timer] = {func, true, interval}
-	return timer
-end
-
-function StartTimer(self, func, delay)
-	local timer = os.startTimer(delay)
-	self.Timers[timer] = {func, false}
-	return timer
-end
-
-function StopTimer(self, timer)
-	if self.Timers[timer] then
-		self.Timers[timer] = nil
-	end
-end
-
-function HandleTimer(self, event, timer)
-	if self.Timers[timer] then
-		local oldTimer = self.Timers[timer]
-		self.Timers[timer] = nil
-		oldTimer[1]()
-		if oldTimer[2] then
-			self:StartRepeatingTimer(oldTimer[1], oldTimer[3])
-		end
-	elseif self.OnTimer then
-		self.OnTimer(self, event, timer)
-	end
-end
-
-function SetActiveObject(self, object)
-	if object then
-		if object ~= self.ActiveObject then
-			self.ActiveObject = object
-			object:ForceDraw()
-		end
-	elseif self.ActiveObject ~= nil then
-		self.ActiveObject = nil
-		self.CursorPos = nil
-		self.View:ForceDraw()
-	end
-end
-
-function GetActiveObject(self)
-	return self.ActiveObject
-end
-
-OnTimer = nil
-OnClick = nil
-OnKeyChar = nil
-OnDrag = nil
-OnScroll = nil
-OnViewLoad = nil
-OnViewClose = nil
-OnDraw = nil
-OnQuit = nil
-
-local eventFuncs = {
-	OnClick = {'mouse_click'},
-	OnKeyChar = {'key', 'char'},
-	OnDrag = {'mouse_drag'},
-	OnScroll = {'mouse_scroll'},
-	HandleClick = {'mouse_click', 'mouse_drag', 'mouse_scroll'},
-	HandleKeyChar = {'key', 'char'},
-	HandleTimer = {'timer'}
+function Initialise(e)
+local t=e.ProgramPath or shell.getRunningProgram()
+local a=fs.getName(t)
+e.ProgramPath=t:sub(1,#t-#a-1)
+e:LoadAPIs()
+e.ViewPath=e.ProgramPath..'/Views/'
+local a={
+'Drawing',
+'View'
 }
-
-local drawCalls = 0
-local ignored = 0
-function Draw(self)
-	self.IsDrawing = true
-	if self.OnDraw then
-		self:OnDraw()
-	end
-
-	if self.View and self.View:NeedsDraw() then
-		self.View:Draw()
-		Drawing.DrawBuffer()
-		if isDebug then
-			drawCalls = drawCalls + 1
-		end
-	elseif not self.View then
-		print('No loaded view. You need to do program:LoadView first.')
-	end	
-
-	if self:GetActiveObject() and self.CursorPos and type(self.CursorPos[1]) == 'number' and type(self.CursorPos[2]) == 'number' then
-		term.setCursorPos(self.CursorPos[1], self.CursorPos[2])
-		term.setTextColour(self.CursorColour)
-		term.setCursorBlink(true)
-	else
-		term.setCursorBlink(false)
-	end
-
-	self.IsDrawing = false
+local t=getfenv()
+for a,e in ipairs(a)do
+if not t[e]then
+error('The API: '..e..' is not loaded. Please make sure you load it to use Bedrock.')
 end
-
-function EventHandler(self)
-	local event = { os.pullEventRaw() }
-	
-	if self.EventHandlers[event[1]] then
-		for i, e in ipairs(self.EventHandlers[event[1]]) do
-			e(self, unpack(event))
-		end
-	end
 end
-
-function Quit(self)
-	self.Running = false
-	if self.OnQuit then
-		self:OnQuit()
-	end
-	if OneOS then
-		OneOS.Close()
-	end
+local t={}
+for e,a in pairs(e)do
+if e~='Initialise'then
+t[e]=a
 end
-
-function Run(self, ready)
-	for name, events in pairs(eventFuncs) do
-		if self[name] then
-			for i, event in ipairs(events) do
-				self:RegisterEvent(event, self[name])
-			end
-		end
-	end
-
-	if self.AllowTerminate then
-		self:RegisterEvent('terminate', function()error('Terminated', 0) end)
-	end
-
-	if self.DefaultView and self.DefaultView ~= '' and fs.exists(self.ViewPath..self.DefaultView..'.view') then
-		self:LoadView(self.DefaultView)
-	end
-
-	if ready then
-		ready()
-	end
-	
-	self:Draw()
-
-	while self.Running do
-		self:EventHandler()
-	end
+end
+return setmetatable(t,getmetatable(e))
+end
+function HandleClick(e,i,o,a,t)
+if e.Window then
+if not e.View:CheckClick(e.Window,a,t)then
+e.Window:Flash()
+else
+e.View:DoClick(e.Window,i,o,a,t)
+end
+elseif e.Menu then
+if not e.View:DoClick(e.Menu,i,o,a,t)then
+e.Menu:Close()
+end
+elseif e.View then
+if e.View:Click(i,o,a,t)~=false then
+end
+end
+end
+function HandleKeyChar(e,a,t)
+if e:GetActiveObject()then
+local e=e:GetActiveObject()
+if e.OnKeyChar then
+if e:OnKeyChar(a,t)~=false then
+end
+end
+end
+end
+function ToggleMenu(e,o,i,a,t)
+if e.Menu then
+e.Menu:Close()
+return false
+else
+e:SetMenu(o,i,a,t)
+return true
+end
+end
+function SetMenu(e,i,o,t,a)
+t=t or 1
+a=a or 1
+if e.Menu then
+e.Menu:Close()
+end
+if i then
+local n=o:GetPosition()
+e.Menu=e:AddObject(i,{Type='Menu',Owner=o,X=n.X+t-1,Y=n.Y+a})
+end
+end
+function ObjectClick(e,t,a)
+e.ObjectClickHandlers[t]=a
+end
+function ClickObject(t,e,a,i,n,o)
+if t.ObjectClickHandlers[e.Name]then
+return t.ObjectClickHandlers[e.Name](e,a,i,n,o)
+end
+return false
+end
+function ObjectUpdate(a,e,t)
+a.ObjectUpdateHandlers[e]=t
+end
+function UpdateObject(t,e,...)
+if t.ObjectUpdateHandlers[e.Name]then
+t.ObjectUpdateHandlers[e.Name](e,...)
+end
+end
+function GetAbsolutePosition(t,e)
+if not e.Parent then
+return{X=e.X,Y=e.Y}
+else
+local a=t:GetAbsolutePosition(e.Parent)
+local t=a.X+e.X-1
+local a=a.Y+e.Y-1
+if not e.Fixed and e.Parent.ChildOffset then
+t=t+e.Parent.ChildOffset.X
+a=a+e.Parent.ChildOffset.Y
+end
+return{X=t,Y=a}
+end
+end
+function LoadView(e,o,n)
+if e.View and e.OnViewClose then
+e.OnViewClose(e.View.Name)
+end
+if e.View then
+e.View:OnRemove()
+end
+local a=false
+local i=fs.open(e.ViewPath..o..'.view','r')
+if i then
+local t=textutils.unserialize(i.readAll())
+i.close()
+if t then
+e.View=View:InitialiseFile(e,t,o)
+e:ReorderObjects()
+if OneOS and t.ToolBarColour then
+OneOS.ToolBarColour=t.ToolBarColour
+end
+if OneOS and t.ToolBarTextColour then
+OneOS.ToolBarTextColour=t.ToolBarTextColour
+end
+if not e:GetActiveObject()then
+e:SetActiveObject()
+end
+a=true
+end
+end
+if a and e.OnViewLoad then
+e.OnViewLoad(o)
+end
+if n~=false then
+e:Draw()
+end
+if not a then
+error('Failed to load view: '..o..'. It probably isn\'t formatted correctly.')
+end
+return a
+end
+function InheritFile(t,e,a)
+local t=fs.open(t.ViewPath..a..'.view','r')
+if t then
+local t=textutils.unserialize(t.readAll())
+if t then
+if type(t)~='table'then
+error('View: "'..a..'.view" is not formatted correctly.')
+end
+for t,a in pairs(t)do
+if not e[t]then
+e[t]=a
+end
+end
+return e
+end
+end
+return e
+end
+function ObjectFromFile(o,t,n)
+local i=getfenv()
+if i[t.Type]then
+if not i[t.Type].Initialise then
+error('Malformed Object: '..t.Type)
+end
+local e={}
+if t.InheritView then
+t=o:InheritFile(t,t.InheritView)
+end
+e.AutoWidth=true
+for a,t in pairs(t)do
+if a=='Width'or a=='X'or a=='Height'or a=='Y'then
+local o=n.Width
+if a=='Height'or a=='Y'then
+o=n.Height
+end
+local e={t}
+if type(t)=='string'and string.find(t,',')then
+e={}
+for t in string.gmatch(t,'([^,]+)')do
+table.insert(e,t)
+end
+end
+t=0
+for a,e in ipairs(e)do
+if type(e)=='string'and e:sub(#e)=='%'then
+t=t+math.ceil(o*(tonumber(e:sub(1,#e-1))/100))
+else
+t=t+tonumber(e)
+end
+end
+end
+if a=='Width'then
+e.AutoWidth=false
+end
+if a~='Children'then
+e[a]=t
+else
+e[a]={}
+end
+end
+e.Parent=n
+e.Bedrock=o
+if not e.Name then
+e.Name=t.Type
+end
+e=i[t.Type]:Initialise(e)
+if t.Children then
+for a,t in ipairs(t.Children)do
+local t=o:ObjectFromFile(t,e)
+if not t.Z then
+t.Z=a
+end
+t.Parent=e
+table.insert(e.Children,t)
+end
+end
+if not e.OnClick then
+e.OnClick=function(...)return o:ClickObject(...)end
+end
+if e.OnUpdate then
+for t,a in pairs(i[t.Type])do
+e:OnUpdate(t)
+end
+for t,a in pairs(e.__index)do
+e:OnUpdate(t)
+end
+end
+if e.Active then
+e.Bedrock:SetActiveObject(e)
+end
+if e.OnLoad then
+e:OnLoad()
+end
+return e
+elseif not t.Type then
+error('No object type specified. (e.g. Type = "Button")')
+else
+error('No Object: '..t.Type..'. The API probably isn\'t loaded')
+end
+end
+function ReorderObjects(e)
+if e.View and e.View.Children then
+table.sort(e.View.Children,function(t,e)
+return t.Z<e.Z
+end)
+end
+end
+function AddObject(a,t,e)
+return a.View:AddObject(t,e)
+end
+function GetObject(e,t)
+return e.View:GetObject(t)
+end
+function GetObjects(t,e)
+return t.View:GetObjects(e)
+end
+function RemoveObject(t,e)
+return t.View:RemoveObject(e)
+end
+function RemoveObjects(t,e)
+return t.View:RemoveObjects(e)
+end
+function ForceDraw(e)
+if not e.DrawTimer or e.DrawTimerExpiry<=os.clock()then
+e.DrawTimer=e:StartTimer(function()
+e.DrawTimer=nil
+e:Draw()
+end,.05)
+e.DrawTimerExpiry=os.clock()+.1
+end
+end
+function DisplayWindow(t,e,o,a)
+if a==nil then
+a=true
+end
+if type(e)=='string'then
+local t=fs.open(t.ViewPath..e..'.view','r')
+if t then
+e=textutils.unserialize(t.readAll())
+t.close()
+end
+end
+t.Window=t:AddObject({Type='Window',Z=999,Title=o,CanClose=a})
+e.Type='View'
+e.Name='View'
+e.BackgroundColour=e.BackgroundColour or colours.white
+t.Window:SetView(t:ObjectFromFile(e,t.Window))
+end
+function DisplayAlertWindow(s,r,n,e,t)
+local h=function(e)
+s.Window:Close()
+if t then
+t(e.Text)
+end
+end
+local o={}
+local t=-1
+if e then
+for a,e in ipairs(e)do
+t=t+3+#e
+table.insert(o,{
+["Y"]="100%,-1",
+["X"]="100%,-"..t,
+["Name"]=e.."Button",
+["Type"]="Button",
+["Text"]=e,
+OnClick=h
+})
+end
+end
+local t=t+2
+if t<28 then
+t=28
+end
+local a=true
+if e and#e~=0 then
+a=false
+end
+local i=#Helpers.WrapText(n,t-2)
+table.insert(o,{
+["Y"]=2,
+["X"]=2,
+["Width"]="100%,-2",
+["Height"]=i,
+["Name"]="Label",
+["Type"]="Label",
+["Text"]=n
+})
+local e={
+Children=o,
+Width=t,
+Height=3+i+(a and 0 or 1),
+OnKeyChar=function(t,t)
+h({Text=e[1]})
+end
+}
+s:DisplayWindow(e,r,a)
+end
+function DisplayTextBoxWindow(e,h,o,t,n,s)
+n=n or''
+local a=function(a)
+e.Window:Close()
+if t then
+t(a.Text)
+end
+end
+local i={
+{
+["Y"]="100%,-1",
+["X"]="100%,-4",
+["Name"]="OkButton",
+["Type"]="Button",
+["Text"]="Ok",
+OnClick=function()
+local a=e.Window:GetObject('TextBox').Text
+e.Window:Close()
+t(true,a)
+end
+},
+{
+["Y"]="100%,-1",
+["X"]="100%,-13",
+["Name"]="CancelButton",
+["Type"]="Button",
+["Text"]="Cancel",
+OnClick=function()
+e.Window:Close()
+t(false)
+end
+}
+}
+local a=-1
+if o and#o~=0 then
+a=#Helpers.WrapText(o,26)
+table.insert(i,{
+["Y"]=2,
+["X"]=2,
+["Width"]="100%,-2",
+["Height"]=a,
+["Name"]="Label",
+["Type"]="Label",
+["Text"]=o
+})
+end
+table.insert(i,
+{
+["Y"]=3+a,
+["X"]=2,
+["Width"]="100%,-2",
+["Name"]="TextBox",
+["Type"]="TextBox",
+["Text"]=n,
+["CursorPos"]=(s and 0 or nil)
+})
+local a={
+Children=i,
+Width=28,
+Height=5+a+(canClose and 0 or 1),
+}
+e:DisplayWindow(a,h)
+e.Window:GetObject('TextBox').OnUpdate=function(o,a)
+if a==keys.enter then
+e.Window:Close()
+t(true,o.Text)
+end
+end
+e:SetActiveObject(e.Window:GetObject('TextBox'))
+e.Window.OnCloseButton=function()t(false)end
+end
+function RegisterEvent(e,t,a)
+if not e.EventHandlers[t]then
+e.EventHandlers[t]={}
+end
+table.insert(e.EventHandlers[t],a)
+end
+function StartRepeatingTimer(o,a,t)
+local e=t
+if type(e)=='function'then
+e=e()
+end
+if not e or e<=0 then
+return
+end
+local e=os.startTimer(e)
+o.Timers[e]={a,true,t}
+return e
+end
+function StartTimer(t,a,e)
+local e=os.startTimer(e)
+t.Timers[e]={a,false}
+return e
+end
+function StopTimer(e,t)
+if e.Timers[t]then
+e.Timers[t]=nil
+end
+end
+function HandleTimer(e,o,a)
+if e.Timers[a]then
+local t=e.Timers[a]
+e.Timers[a]=nil
+t[1]()
+if t[2]then
+e:StartRepeatingTimer(t[1],t[3])
+end
+elseif e.OnTimer then
+e.OnTimer(e,o,a)
+end
+end
+function SetActiveObject(e,t)
+if t then
+if t~=e.ActiveObject then
+e.ActiveObject=t
+t:ForceDraw()
+end
+elseif e.ActiveObject~=nil then
+e.ActiveObject=nil
+e.CursorPos=nil
+e.View:ForceDraw()
+end
+end
+function GetActiveObject(e)
+return e.ActiveObject
+end
+OnTimer=nil
+OnClick=nil
+OnKeyChar=nil
+OnDrag=nil
+OnScroll=nil
+OnViewLoad=nil
+OnViewClose=nil
+OnDraw=nil
+local o={
+OnClick={'mouse_click'},
+OnKeyChar={'key','char'},
+OnDrag={'mouse_drag'},
+OnScroll={'mouse_scroll'},
+HandleClick={'mouse_click','mouse_drag','mouse_scroll'},
+HandleKeyChar={'key','char'},
+HandleTimer={'timer'}
+}
+local t=0
+local e=0
+function Draw(e)
+e.IsDrawing=true
+if e.OnDraw then
+e:OnDraw()
+end
+if e.View and e.View:NeedsDraw()then
+e.View:Draw()
+Drawing.DrawBuffer()
+if isDebug then
+t=t+1
+end
+elseif not e.View then
+print('No loaded view. You need to do program:LoadView first.')
+end
+if e:GetActiveObject()and e.CursorPos and type(e.CursorPos[1])=='number'and type(e.CursorPos[2])=='number'then
+term.setCursorPos(e.CursorPos[1],e.CursorPos[2])
+term.setTextColour(e.CursorColour)
+term.setCursorBlink(true)
+else
+term.setCursorBlink(false)
+end
+e.IsDrawing=false
+end
+function EventHandler(e)
+local t={os.pullEventRaw()}
+if e.EventHandlers[t[1]]then
+for o,a in ipairs(e.EventHandlers[t[1]])do
+a(e,unpack(t))
+end
+end
+end
+function Run(e,a)
+for t,a in pairs(o)do
+if e[t]then
+for o,a in ipairs(a)do
+e:RegisterEvent(a,e[t])
+end
+end
+end
+if e.AllowTerminate then
+e:RegisterEvent('terminate',function()error('Terminated',0)end)
+end
+print(e.ViewPath..e.DefaultView..'.lua')
+if e.DefaultView and e.DefaultView~=''and fs.exists(e.ViewPath..e.DefaultView..'.view')then
+e:LoadView(e.DefaultView)
+end
+if a then
+a()
+end
+e:Draw()
+while true do
+e:EventHandler()
+end
 end

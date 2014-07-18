@@ -2,4 +2,15 @@ local bedrockPath='Build/' if OneOS then OneOS.LoadAPI('/System/API/Bedrock.lua'
 
 local program = Bedrock:Initialise()
 
-program:Run()
+program:Run(function()
+end)
+
+
+
+--high five the person
+person:HighFive('left')
+
+--this calls
+function HighFive(reciever, hand)
+	--high five reciever with your left/right hand
+end
