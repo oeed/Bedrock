@@ -6,7 +6,7 @@ DisabledTextColour = colours.lightGrey
 Text = ""
 Toggle = nil
 Momentary = true --TODO: the flash doesn't actually appear because it is skipped over in the 0.05s
-AutoWidth = true
+AutoWidthAutoWidth = true
 Align = 'Center'
 Enabled = true
 

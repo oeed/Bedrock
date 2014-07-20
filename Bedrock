@@ -1,19 +1,35 @@
---
---		Bedrock is the core program framework used by all OneOS and OneCode programs.
---							Inspired by Apple's Cocoa framework.
---									   (c) oeed 2014
---
---		  For documentation see the OneOS wiki, github.com/oeed/OneOS/wiki/Bedrock/
---
 
 BasePath = ''
 ProgramPath = nil
+
+-- Program functions...
+
+local function main(...)
+	-- Code here...
+end
+
+-- Run
+local args = {...}
+local _, err = pcall(function() main(unpack(args)) end)
+if err then
+	-- Make a nice error handling screen here...
+	term.setBackgroundColor(colors.black)
+	term.setTextColor(colors.white)
+	term.clear()
+	term.setCursorPos(1, 3)
+	print(" An Error Has Occured! D:\n\n")
+	print(" " .. tostring(err) .. "\n\n")
+	print(" Press any key to exit...")
+	os.pullEvent("key")
+end
+
+
 
 function LoadAPIs(self)
 
 	local function loadAPI(name, content)
 		local env = setmetatable({}, { __index = getfenv() })
-		local func, err = loadstring(content)
+		local func, err = loadstring(content, name..' (Bedrock API)')
 		if not func then
 			return false, printError(err)
 		end
@@ -221,6 +237,10 @@ function LoadView(self, name, draw)
 	end
 	local success = false
 
+	if not fs.exists(self.ViewPath..name..'.view') then
+		error('The view: '..name..'.view does not exist.')
+	end
+
 	local h = fs.open(self.ViewPath..name..'.view', 'r')
 	if h then
 		local view = textutils.unserialize(h.readAll())
@@ -251,7 +271,7 @@ function LoadView(self, name, draw)
 	end
 
 	if not success then
-		error('Failed to load view: '..name..'. It probably isn\'t formatted correctly.')
+		error('Failed to load view: '..name..'. It probably isn\'t formatted correctly. Did you forget a } or ,?')
 	end
 
 	return success
@@ -277,6 +297,30 @@ function InheritFile(self, file, name)
 	return file
 end
 
+function ParseStringSize(self, parent, k, v)
+		local parentSize = parent.Width
+		if k == 'Height' or k == 'Y' then
+			parentSize = parent.Height
+		end
+		local parts = {v}
+		if type(v) == 'string' and string.find(v, ',') then
+			parts = {}
+			for word in string.gmatch(v, '([^,]+)') do
+			    table.insert(parts, word)
+			end
+		end
+
+		v = 0
+		for i2, part in ipairs(parts) do
+			if type(part) == 'string' and part:sub(#part) == '%' then
+				v = v + math.ceil(parentSize * (tonumber(part:sub(1, #part-1)) / 100))
+			else
+				v = v + tonumber(part)
+			end
+		end
+		return v
+end
+
 function ObjectFromFile(self, file, view)
 	local env = getfenv()
 	if env[file.Type] then
@@ -292,26 +336,7 @@ function ObjectFromFile(self, file, view)
 		object.AutoWidth = true
 		for k, v in pairs(file) do
 			if k == 'Width' or k == 'X' or k == 'Height' or k == 'Y' then
-				local parentSize = view.Width
-				if k == 'Height' or k == 'Y' then
-					parentSize = view.Height
-				end
-				local parts = {v}
-				if type(v) == 'string' and string.find(v, ',') then
-					parts = {}
-					for word in string.gmatch(v, '([^,]+)') do
-					    table.insert(parts, word)
-					end
-				end
-
-				v = 0
-				for i2, part in ipairs(parts) do
-					if type(part) == 'string' and part:sub(#part) == '%' then
-						v = v + math.ceil(parentSize * (tonumber(part:sub(1, #part-1)) / 100))
-					else
-						v = v + tonumber(part)
-					end
-				end
+				v = self:ParseStringSize(view, k, v)
 			end
 
 			if k == 'Width' then
@@ -462,16 +487,19 @@ function DisplayAlertWindow(self, title, text, buttons, callback)
 		canClose = false
 	end
 
-	local height = #Helpers.WrapText(text, width - 2)
-	table.insert(children, {
-		["Y"]=2,
-		["X"]=2,
-		["Width"]="100%,-2",
-		["Height"]=height,
-		["Name"]="Label",
-		["Type"]="Label",
-		["Text"]=text
-	})
+	local height = 0
+	if text then
+		height = #Helpers.WrapText(text, width - 2)
+		table.insert(children, {
+			["Y"]=2,
+			["X"]=2,
+			["Width"]="100%,-2",
+			["Height"]=height,
+			["Name"]="Label",
+			["Type"]="Label",
+			["Text"]=text
+		})
+	end
 	local view = {
 		Children = children,
 		Width=width,
@@ -583,11 +611,11 @@ function StartTimer(self, func, delay)
 	return timer
 end
 
-function StopTimer(self, timer)
-	if self.Timers[timer] then
-		self.Timers[timer] = nil
-	end
-end
+-- function StopTimer(self, timer)
+-- 	if self.Timers[timer] then
+-- 		self.Timers[timer] = nil
+-- 	end
+-- end
 
 function HandleTimer(self, event, timer)
 	if self.Timers[timer] then

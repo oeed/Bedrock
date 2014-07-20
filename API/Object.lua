@@ -108,6 +108,19 @@ OnRemove = function(self)
 	end
 end
 
+local function ParseColour(value)
+	if type(value) == 'string' then
+		if colours[value] and type(colours[value]) == 'number' then
+			return colours[value]
+		elseif colors[value] and type(colors[value]) == 'number' then
+			return colors[value]
+		end
+	elseif type(value) == 'number' and (value == colours.transparent or (value >= colours.white and value <= colours.black)) then
+		return value
+	end
+	error('Invalid colour: "'..tostring(value)..'"')
+end
+
 Initialise = function(self, values)
 	local _new = values    -- the new instance
 	_new.DrawCache = {
@@ -119,9 +132,29 @@ Initialise = function(self, values)
 
 	local new = {} -- the proxy
 	setmetatable(new, {
-		__index = _new,
+		__index = function(t, k)
+			if k:find('Color') then
+				k = k:gsub('Color', 'Colour')
+			end
+
+			if k:find('Colour') then
+				if _new[k] then
+					return ParseColour(_new[k])
+				end
+			elseif _new[k] then
+				return _new[k]
+			end
+		end,
 
 		__newindex = function (t,k,v)
+			if k:find('Color') then
+				k = k:gsub('Color', 'Colour')
+			end
+
+			if k == 'Width' or k == 'X' or k == 'Height' or k == 'Y' then
+				v = new.Bedrock:ParseStringSize(new.Parent, k, v)
+			end
+
 			if v ~= _new[k] then
 				_new[k] = v
 				if t.OnUpdate then

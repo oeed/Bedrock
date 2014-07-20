@@ -61,11 +61,11 @@ function WithinContraint(x, y)
 		   y <= Drawing.CurrentConstraint[4])
 end
 
-colours.transparent = -1
-colors.transparent = -1
+colours.transparent = 0
+colors.transparent = 0
 
 DrawCharacters = function (x, y, characters, textColour, bgColour)
-	Drawing.WriteStringToBuffer(x, y, characters, textColour, bgColour)
+	Drawing.WriteStringToBuffer(x, y, tostring(characters), textColour, bgColour)
 end
 
 DrawBlankArea = function (x, y, w, h, colour)

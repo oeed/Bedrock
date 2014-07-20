@@ -1,0 +1,18 @@
+{
+  Type="Menu",
+  Children={
+    {
+      Name="ViewModeMenuItem",
+      Type="Button",
+      Text="List View"
+    },
+    {
+      ["Type"]="Separator"
+    },
+    {
+      Name="HiddenFilesMenuItem",
+      Type="Button",
+      Text="Show Hidden"
+    }
+  },
+}

@@ -5,15 +5,17 @@
       X=2,
       Name="HelloLabel",
       Type="Label",
-      Text="Hello! I'm a Label!"
+      Text="Hello! I'm a Label!",
+      Width="100%",
+      Align="Center",
     },
     {
-      Y=4,
+      Y=6,
       X=2,
       Name="HelloButton",
       Type="Button",
-      Text="Hello! I'm a Button!"
+      Text="Hello! I'm a Button!",
     }
   },
-  BackgroundColour=1
+  BackgroundColour='white'
 }
