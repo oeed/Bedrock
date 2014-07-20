@@ -1,6 +1,7 @@
 --[[
 	Creates a single file and minified distributable version.
 ]]
+local minified = false
 
 local api = '--Bedrock Build: '
 
@@ -42,11 +43,13 @@ append([[--
 --									   (c) oeed 2014
 --
 --		  For documentation see the Bedrock wiki, github.com/oeed/Bedrock/wiki/
---\n\n]])
+--
+
+]])
 
 append('local apis = {\n')
 
-for i, v in ipairs(fs.list('/API/')) do
+for i, v in ipairs(fs.list((minified and '/Build/Minified' or '')..'/API/')) do
 	append('["'..string.match(v, '(%a+)%.?.-')..'"] = [[\n')
 	append(readFile('/API/'..v))
 	append('\n]],\n')
@@ -56,7 +59,7 @@ append('}\n')
 
 append('local objects = {\n')
 
-for i, v in ipairs(fs.list('/Objects/')) do
+for i, v in ipairs(fs.list((minified and '/Build/Minified' or '')..'/Objects/')) do
 	append('["'..string.match(v, '(%a+)%.?.-')..'"] = [[\n')
 	append(readFile('/Objects/'..v))
 	append('\n]],\n')

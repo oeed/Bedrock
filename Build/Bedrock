@@ -1,4 +1,4 @@
---Bedrock Build: 51
+--Bedrock Build: 52
 --This code is squished down in to one, rather hard to read file.
 --As such it is not much good for anything other than being used.
 --If you want to look at the code to learn from it, copy parts or just take a look,
@@ -9,8 +9,10 @@
 --							Inspired by Apple's Cocoa framework.
 --									   (c) oeed 2014
 --
---		  For documentation see the OneOS wiki, github.com/oeed/OneOS/wiki/Bedrock/
---\nlocal apis = {
+--		  For documentation see the Bedrock wiki, github.com/oeed/Bedrock/wiki/
+--
+
+local apis = {
 ["Drawing"] = [[
 local round = function(num, idp)
 	local mult = 10^(idp or 0)
