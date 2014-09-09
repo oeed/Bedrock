@@ -116,6 +116,10 @@ Timers = {
 
 function Initialise(self)
 	local prgPath = self.ProgramPath or shell.getRunningProgram()
+	if prgPath:sub(1, 1) ~= "/" then
+		prgPath = "/" .. prgPath
+	end
+	
 	local prgName = fs.getName(prgPath)
 	self.ProgramPath = prgPath:sub(1, #prgPath-#prgName-1)
 	self:LoadAPIs()
