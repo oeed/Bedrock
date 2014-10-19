@@ -15,6 +15,15 @@
       Name="HelloButton",
       Type="Button",
       Text="Hello! I'm a Button!",
+      ["Toggle"]=false,
+    },
+    {
+      Y=8,
+      X=2,
+      Type="TextBox",
+      Text="Hello! I'm a very, very",
+      Width=30,
+      ["SelectOnClick"]=true
     }
   },
   BackgroundColour='white'

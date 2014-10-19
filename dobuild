@@ -33,7 +33,7 @@ function append(str)
 end
 
 append('--This code is squished down in to one, rather hard to read file.\n')
-append('--As such it is not much good for anything other than being used.\n')
+append('--As such it is not much good for anything other than being loaded as an API.\n')
 append('--If you want to look at the code to learn from it, copy parts or just take a look,\n')
 append('--you should go to the GitHub repo. http://github.com/oeed/Bedrock/\n')
 append('\n')
@@ -50,9 +50,11 @@ append([[--
 append('local apis = {\n')
 
 for i, v in ipairs(fs.list((minified and '/Build/Minified' or '')..'/API/')) do
-	append('["'..string.match(v, '(%a+)%.?.-')..'"] = [[\n')
-	append(readFile('/API/'..v))
-	append('\n]],\n')
+	if v ~= '.DS_Store' then
+		append('["'..string.match(v, '(%a+)%.?.-')..'"] = [[\n')
+		append(readFile('/API/'..v))
+		append('\n]],\n')
+	end
 end
 
 append('}\n')
@@ -60,9 +62,11 @@ append('}\n')
 append('local objects = {\n')
 
 for i, v in ipairs(fs.list((minified and '/Build/Minified' or '')..'/Objects/')) do
-	append('["'..string.match(v, '(%a+)%.?.-')..'"] = [[\n')
-	append(readFile('/Objects/'..v))
-	append('\n]],\n')
+	if v ~= '.DS_Store' then
+		append('["'..string.match(v, '(%a+)%.?.-')..'"] = [[\n')
+		append(readFile('/Objects/'..v))
+		append('\n]],\n')
+	end
 end
 
 append('}\n')

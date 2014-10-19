@@ -35,7 +35,7 @@ local function AddItem(self, v, x, y, group)
 		["Name"]="ListViewItem",
 		["Type"]="Button",
 		["TextColour"]=self.TextColour,
-		["BackgroundColour"]=-1,
+		["BackgroundColour"]=0,
 		["ActiveTextColour"]=self.SelectionTextColour,
 		["ActiveBackgroundColour"]=self.SelectionBackgroundColour,
 		["Align"]='Left',

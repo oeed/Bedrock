@@ -26,7 +26,6 @@ end
 
 
 function LoadAPIs(self)
-
 	local function loadAPI(name, content)
 		local env = setmetatable({}, { __index = getfenv() })
 		local func, err = loadstring(content, name..' (Bedrock API)')
@@ -74,10 +73,12 @@ function LoadAPIs(self)
 	local privateObjPath = self.ProgramPath..'/Objects/'
 	if fs.exists(privateObjPath) and fs.isDir(privateObjPath) then
 		for i, v in ipairs(fs.list(privateObjPath)) do
-			local name = string.match(v, '(%a+)%.?.-')
-			local h = fs.open(privateObjPath..v, 'r')
-			loadObject(name, h.readAll())
-			h.close()
+			if v ~= '.DS_Store' then
+				local name = string.match(v, '(%a+)%.?.-')
+				local h = fs.open(privateObjPath..v, 'r')
+				loadObject(name, h.readAll())
+				h.close()
+			end
 		end
 	end
 end
@@ -114,10 +115,22 @@ Timers = {
 	
 }
 
-function Initialise(self)
-	local prgPath = self.ProgramPath or shell.getRunningProgram()
-	local prgName = fs.getName(prgPath)
-	self.ProgramPath = prgPath:sub(1, #prgPath-#prgName-1)
+function Initialise(self, programPath)
+	self.ProgramPath = programPath or self.ProgramPath
+	if not programPath then
+		if self.ProgramPath then
+			local prgPath = self.ProgramPath
+			local prgName = fs.getName(prgPath)
+			if prgPath:find('/') then 
+				self.ProgramPath = prgPath:sub(1, #prgPath-#prgName-1)
+				self.ProgramPath = prgPath:sub(1, #prgPath-#prgName-1) 
+			else 
+		 		self.ProgramPath = '' 
+		 	end
+		else
+			self.ProgramPath = ''
+		end
+	end
 	self:LoadAPIs()
 	self.ViewPath = self.ProgramPath .. '/Views/'
 	--first, check that the barebones APIs are available
@@ -611,19 +624,22 @@ function StartTimer(self, func, delay)
 	return timer
 end
 
--- function StopTimer(self, timer)
--- 	if self.Timers[timer] then
--- 		self.Timers[timer] = nil
--- 	end
--- end
+function StopTimer(self, timer)
+	if self.Timers[timer] then
+		self.Timers[timer] = nil
+	end
+end
 
 function HandleTimer(self, event, timer)
 	if self.Timers[timer] then
 		local oldTimer = self.Timers[timer]
 		self.Timers[timer] = nil
-		oldTimer[1]()
+		local new = nil
 		if oldTimer[2] then
-			self:StartRepeatingTimer(oldTimer[1], oldTimer[3])
+			new = self:StartRepeatingTimer(oldTimer[1], oldTimer[3])
+		end
+		if oldTimer and oldTimer[1] then
+			oldTimer[1](new)
 		end
 	elseif self.OnTimer then
 		self.OnTimer(self, event, timer)

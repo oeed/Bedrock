@@ -141,7 +141,7 @@ Initialise = function(self, values)
 				if _new[k] then
 					return ParseColour(_new[k])
 				end
-			elseif _new[k] then
+			elseif _new[k] ~= nil then
 				return _new[k]
 			end
 		end,

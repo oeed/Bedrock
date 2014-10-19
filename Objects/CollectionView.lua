@@ -48,7 +48,7 @@ local function AddItem(self, v, i)
 		["Name"]="CollectionViewItem",
 		["Type"]="View",
 		["TextColour"]=self.TextColour,
-		["BackgroundColour"]=-1,
+		["BackgroundColour"]=0F,
 		OnClick = function(itm)
 			if self.CanSelect then
 				for i2, _v in ipairs(self.Children) do
