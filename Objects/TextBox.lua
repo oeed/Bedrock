@@ -153,7 +153,13 @@ OnKeyChar = function(self, event, keychar)
 		elseif keychar == keys.left then
 			-- Left
 			if self.CursorPos > 0 then
-				self.CursorPos = self.CursorPos - 1
+				if self.Selected then
+					self.CursorPos = self.DragStart
+					self.DragStart = nil
+					self.Selected = false
+				else
+					self.CursorPos = self.CursorPos - 1
+				end
 				if self.OnChange then
 					self:OnChange(event, keychar)
 				end
@@ -162,7 +168,13 @@ OnKeyChar = function(self, event, keychar)
 		elseif keychar == keys.right then
 			-- Right				
 			if self.CursorPos < string.len(self.Text) then
-				self.CursorPos = self.CursorPos + 1
+				if self.Selected then
+					self.CursorPos = self.CursorPos
+					self.DragStart = nil
+					self.Selected = false
+				else
+					self.CursorPos = self.CursorPos + 1
+				end
 				if self.OnChange then
 					self:OnChange(event, keychar)
 				end

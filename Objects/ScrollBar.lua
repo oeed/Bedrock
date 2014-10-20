@@ -19,7 +19,7 @@ OnDraw = function(self, x, y)
     local percentage = (self.Scroll/self.MaxScroll)
 
     Drawing.DrawBlankArea(x, y, self.Width, self.Height, self.BackgroundColour)
-    Drawing.DrawBlankArea(x, y + self.Bedrock.Helpers.Round(self.Height*percentage - barHeight*percentage), self.Width, barHeight, self.BarColour)
+    Drawing.DrawBlankArea(x, y + math.ceil(self.Height*percentage - barHeight*percentage), self.Width, barHeight, self.BarColour)
 end
 
 OnScroll = function(self, event, direction, x, y)
@@ -52,7 +52,7 @@ OnClick = function(self, event, side, x, y)
 		local delta = ((y - self.ClickPoint)/gapHeight)*self.MaxScroll
 		--l(((y - self.ClickPoint)/gapHeight))
 		--l(delta)
-		self.Scroll = delta
+		self.Scroll = self.Bedrock.Helpers.Round(delta)
 		--l(self.Scroll)
 		--l('----')
 		if self.Scroll < 0 then
