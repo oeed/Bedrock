@@ -597,6 +597,163 @@ function DisplayTextBoxWindow(self, title, text, callback, textboxText, cursorAt
 	self.Window.OnCloseButton = function()callback(false)end
 end
 
+function DisplayOpenFileWindow(self, title, callback)
+	title = title or 'Open File'
+	local func = function(btn)
+		self.Window:Close()
+		if callback then
+			callback(btn.Text)
+		end
+	end
+
+	local sidebarItems = {}
+
+	--this is a really, really super bad way of doing it
+	local separator = '                               !'
+
+	local function addFolder(path, level)
+		for i, v in ipairs(fs.list(path)) do
+			local fPath = path .. '/' .. v
+			if fPath ~= '/rom' and fs.isDir(fPath) then
+				table.insert(sidebarItems, level .. v..separator..fPath)
+				addFolder(fPath, level .. '  ')
+			end
+		end
+	end
+	addFolder('','')
+
+	local currentFolder = ''
+	local selectedPath = nil
+
+	local goToFolder = nil
+
+	local children = {
+		{
+			["Y"]="100%,-2",
+			["X"]=1,
+			["Height"]=3,
+			["Width"]="100%",
+			["BackgroundColour"]=colours.lightGrey,
+			["Name"]="SidebarListView",
+			["Type"]="View"
+		},
+		{
+			["Y"]="100%,-1",
+			["X"]="100%,-4",
+			["Name"]="OkButton",
+			["Type"]="Button",
+			["Text"]="Ok",
+			["BackgroundColour"]=colours.white,
+			["Enabled"]=false,
+			OnClick = function()
+				if selectedPath then
+					self.Window:Close()
+					callback(true, Helpers.TidyPath(selectedPath))
+				end
+			end
+		},
+		{
+			["Y"]="100%,-1",
+			["X"]="100%,-13",
+			["Name"]="CancelButton",
+			["Type"]="Button",
+			["Text"]="Cancel",
+			["BackgroundColour"]=colours.white,
+			OnClick = function()
+				self.Window:Close()
+				callback(false)
+			end
+		},
+		{
+			["Y"]=1,
+			["X"]=1,
+			["Height"]="100%,-3",
+			["Width"]="40%,-1",
+			["Name"]="SidebarListView",
+			["Type"]="ListView",
+			["CanSelect"]=true,
+			["Items"]={
+				["Computer"] = sidebarItems
+			},
+			OnSelect = function(listView, text)
+				local _,s = text:find(separator)
+				if s then
+					local path = text:sub(s + 1)
+					goToFolder(path)
+				end
+			end,
+			OnClick = function(listView, event, side, x, y)
+				if y == 1 then
+					goToFolder('/')
+				end
+			end
+		},
+		{
+			["Y"]=1,
+			["X"]="40%",
+			["Height"]="100%,-3",
+			["Width"]=1,
+			["Type"]="Separator"
+		},
+		{
+			["Y"]=1,
+			["X"]="40%,2",
+			["Width"]="65%,-3",
+			["Height"]=1,
+			["Type"]="Label",
+			["Name"]="PathLabel",
+			["TextColour"]=colours.lightGrey,
+			["Text"]='/hello/there'
+		},
+		{
+			["Y"]=2,
+			["X"]="40%,1",
+			["Height"]="100%,-4",
+			["Width"]="65%,-1",
+			["Name"]="FilesListView",
+			["Type"]="ListView",
+			["CanSelect"]=true,
+			["Items"]={},
+			OnSelect = function(listView, text)
+				selectedPath = Helpers.TidyPath(currentFolder .. '/' .. text)
+				self.Window:GetObject('OkButton').Enabled = true
+			end,
+			OnClick = function(listView, event, side, x, y)
+				if y == 1 then
+					goToFolder('/')
+				end
+			end
+		},
+	}
+	local view = {
+		Children = children,
+		Width=40,
+		Height= Drawing.Screen.Height - 4
+	}
+	self:DisplayWindow(view, title)
+
+	goToFolder = function(path)
+		path = Helpers.TidyPath(path)
+		self.Window:GetObject('PathLabel').Text = path
+		currentFolder = path
+
+		local filesListItems = {}
+		for i, v in ipairs(fs.list(path)) do
+			if not fs.isDir(currentFolder .. v) then
+				table.insert(filesListItems, v)
+			end
+		end
+		self.Window:GetObject('OkButton').Enabled = false
+		selectedPath = nil
+		self.Window:GetObject('FilesListView').Items = filesListItems
+
+	end
+
+	goToFolder('')
+
+	self.Window.OnCloseButton = function()callback(false)end
+end
+
 function RegisterEvent(self, event, func)
 	if not self.EventHandlers[event] then
 		self.EventHandlers[event] = {}

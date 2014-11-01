@@ -2,6 +2,12 @@ local bedrockPath='Build/' if OneOS then OneOS.LoadAPI('/System/API/Bedrock.lua'
 
 local program = Bedrock:Initialise()
 
+program.OnKeyChar = function(self, event, keychar)
+	if keychar == '\\' then
+		os.reboot()
+	end
+end
+
 program:Run(function()
 	program:GetObject('HelloButton').OnClick = function(self, event, side, x, y)
 		if self:ToggleMenu({
@@ -35,5 +41,9 @@ program:Run(function()
 			end
 		end
 	end
+
+	program:DisplayOpenFileWindow(nil, function(ok, path)
+		error(path)
+	end)
 end)
 

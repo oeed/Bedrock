@@ -43,10 +43,9 @@ local function AddItem(self, v, x, y, group)
 		["Group"]=group,
 		OnClick = function(itm)
 			if self.CanSelect then
-				for i2, _v in ipairs(self.Children) do
-					_v.Toggle = false
-				end
-				self.Selected = itm
+				self:SelectItem(itm)
+			elseif self.OnSelect then
+				self:OnSelect(itm.Text)
 			end
 		end
     }
@@ -60,7 +59,7 @@ local function AddItem(self, v, x, y, group)
 	
 	local itm = self:AddObject(item)
 	if v.Selected then
-		self.Selected = itm
+		self:SelectItem(itm)
 	end
 end
 
@@ -147,6 +146,9 @@ SelectItem = function(self, item)
 	end
 	self.Selected = item
 	item.Toggle = true
+	if self.OnSelect then
+		self:OnSelect(item.Text)
+	end
 end
 
 OnUpdate = function(self, value)
