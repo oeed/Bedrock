@@ -82,6 +82,11 @@ Draw = function(self)
 		end
 	end
 
+
+	if self.OnPostChildrenDraw then
+		self:OnPostChildrenDraw(pos.X, pos.Y)
+	end
+
 	if self.ClipDrawing then
 		Drawing.RemoveConstraint()
 	end	
@@ -137,7 +142,7 @@ Initialise = function(self, values)
 				k = k:gsub('Color', 'Colour')
 			end
 
-			if k:find('Colour') then
+			if k:find('Colour') and type(_new[k]) ~= 'table' and type(_new[k]) ~= 'function' then
 				if _new[k] then
 					return ParseColour(_new[k])
 				end

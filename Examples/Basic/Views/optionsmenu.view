@@ -3,8 +3,9 @@
   Children={
     {
       Name="ViewModeMenuItem",
-      Type="Button",
-      Text="List View"
+      Type="MenuItem",
+      Text="List View",
+      Shortcut='#='
     },
     {
       ["Type"]="Separator"

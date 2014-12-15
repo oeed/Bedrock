@@ -3,6 +3,7 @@ Inherit = 'View'
 TextColour = colours.black
 BackgroundColour = colours.white
 HideTop = false
+Prepared = false
 
 OnDraw = function(self, x, y)
 	Drawing.IgnoreConstraint = true
@@ -31,27 +32,48 @@ end
 
 OnUpdate = function(self, value)
 	if value == 'Children' then
-		self.Width = self.Bedrock.Helpers.LongestString(self.Children, 'Text') + 2
 		self.Height = #self.Children + 1 + (self.HideTop and 0 or 1)
 		if not self.BaseY then
 			self.BaseY = self.Y
 		end
-
-		for i, v in ipairs(self.Children) do
-			if v.TextColour then
-				v.TextColour = self.TextColour
+		if #self.Children > 0 and self.Children[1].Type == 'Button' then
+			self.Width = self.Bedrock.Helpers.LongestString(self.Children, 'Text') + 2
+			for i, v in ipairs(self.Children) do
+				if v.TextColour then
+					v.TextColour = self.TextColour
+				end
+				if v.BackgroundColour then
+					v.BackgroundColour = colours.transparent
+				end
+				if v.Colour then
+					v.Colour = colours.lightGrey
+				end
+				v.Align = 'Left'
+				v.X = 1
+				v.Y = i + (self.HideTop and 0 or 1)
+				v.Width = self.Width
+				v.Height = 1
 			end
-			if v.BackgroundColour then
-				v.BackgroundColour = colours.transparent
+		elseif #self.Children > 0 and self.Children[1].Type == 'MenuItem' then
+			local width = 1
+			for i, v in ipairs(self.Children) do
+				if v.Width > width then
+					width = v.Width
+				end
 			end
-			if v.Colour then
-				v.Colour = colours.lightGrey
+			self.Width = width
+			for i, v in ipairs(self.Children) do
+				if v.TextColour then
+					v.TextColour = self.TextColour
+				end
+				if v.Colour then
+					v.Colour = colours.lightGrey
+				end
+				v.X = 1
+				v.Y = i + (self.HideTop and 0 or 1)
+				v.Width = width
+				v.Height = 1
 			end
-			v.Align = 'Left'
-			v.X = 1
-			v.Y = i + (self.HideTop and 0 or 1)
-			v.Width = self.Width
-			v.Height = 1
 		end
 
 		self.Y = self.BaseY
@@ -68,7 +90,12 @@ end
 
 Close = function(self, isBedrockCall)
 	self.Bedrock.Menu = nil
-	self.Parent:RemoveObject(self)
+	if not self.Prepared then
+		self.Parent:RemoveObject(self)
+	else
+		self.Visible = false
+	end
+
 	if self.Owner and self.Owner.Toggle then
 		self.Owner.Toggle = false
 	end

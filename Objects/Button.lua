@@ -6,7 +6,7 @@ DisabledTextColour = colours.lightGrey
 Text = ""
 Toggle = nil
 Momentary = true
-AutoWidthAutoWidth = true
+AutoWidth = true
 Align = 'Center'
 Enabled = true
 
@@ -38,7 +38,9 @@ OnDraw = function(self, x, y)
     elseif self.Align == 'Center' then
         _x = math.floor((self.Width - #self.Text) / 2)
     end
-	Drawing.DrawCharacters(x + _x, y, self.Text, txt, bg)
+
+
+	Drawing.DrawCharacters(x + _x, y-1+math.ceil(self.Height/2), self.Text, txt, bg)
 end
 
 OnLoad = function(self)

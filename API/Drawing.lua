@@ -64,6 +64,136 @@ end
 colours.transparent = 0
 colors.transparent = 0
 
+Filters = {
+	None = {
+		[colours.white] = colours.white,
+		[colours.orange] = colours.orange,
+		[colours.magenta] = colours.magenta,
+		[colours.lightBlue] = colours.lightBlue,
+		[colours.yellow] = colours.yellow,
+		[colours.lime] = colours.lime,
+		[colours.pink] = colours.pink,
+		[colours.grey] = colours.grey,
+		[colours.lightGrey] = colours.lightGrey,
+		[colours.cyan] = colours.cyan,
+		[colours.purple] = colours.purple,
+		[colours.blue] = colours.blue,
+		[colours.brown] = colours.brown,
+		[colours.green] = colours.green,
+		[colours.red] = colours.red,
+		[colours.black] = colours.black,
+		[colours.transparent] = colours.transparent,
+	},
+
+	Greyscale = {
+		[colours.white] = colours.white,
+		[colours.orange] = colours.lightGrey,
+		[colours.magenta] = colours.lightGrey,
+		[colours.lightBlue] = colours.lightGrey,
+		[colours.yellow] = colours.lightGrey,
+		[colours.lime] = colours.lightGrey,
+		[colours.pink] = colours.lightGrey,
+		[colours.grey] = colours.grey,
+		[colours.lightGrey] = colours.lightGrey,
+		[colours.cyan] = colours.grey,
+		[colours.purple] = colours.grey,
+		[colours.blue] = colours.grey,
+		[colours.brown] = colours.grey,
+		[colours.green] = colours.grey,
+		[colours.red] = colours.grey,
+		[colours.black] = colours.black,
+		[colours.transparent] = colours.transparent,
+	},
+
+	BlackWhite = {
+		[colours.white] = colours.white,
+		[colours.orange] = colours.white,
+		[colours.magenta] = colours.white,
+		[colours.lightBlue] = colours.white,
+		[colours.yellow] = colours.white,
+		[colours.lime] = colours.white,
+		[colours.pink] = colours.white,
+		[colours.grey] = colours.black,
+		[colours.lightGrey] = colours.white,
+		[colours.cyan] = colours.black,
+		[colours.purple] = colours.black,
+		[colours.blue] = colours.black,
+		[colours.brown] = colours.black,
+		[colours.green] = colours.black,
+		[colours.red] = colours.black,
+		[colours.black] = colours.black,
+		[colours.transparent] = colours.transparent,
+	},
+
+	Darker = {
+		[colours.white] = colours.lightGrey,
+		[colours.orange] = colours.red,
+		[colours.magenta] = colours.purple,
+		[colours.lightBlue] = colours.cyan,
+		[colours.yellow] = colours.orange,
+		[colours.lime] = colours.green,
+		[colours.pink] = colours.magenta,
+		[colours.grey] = colours.black,
+		[colours.lightGrey] = colours.grey,
+		[colours.cyan] = colours.blue,
+		[colours.purple] = colours.grey,
+		[colours.blue] = colours.grey,
+		[colours.brown] = colours.grey,
+		[colours.green] = colours.grey,
+		[colours.red] = colours.brown,
+		[colours.black] = colours.black,
+		[colours.transparent] = colours.transparent,
+	},
+
+	Lighter = {
+		[colours.white] = colours.white,
+		[colours.orange] = colours.yellow,
+		[colours.magenta] = colours.pink,
+		[colours.lightBlue] = colours.white,
+		[colours.yellow] = colours.white,
+		[colours.lime] = colours.white,
+		[colours.pink] = colours.white,
+		[colours.grey] = colours.lightGrey,
+		[colours.lightGrey] = colours.white,
+		[colours.cyan] = colours.lightBlue,
+		[colours.purple] = colours.magenta,
+		[colours.blue] = colours.lightBlue,
+		[colours.brown] = colours.red,
+		[colours.green] = colours.lime,
+		[colours.red] = colours.orange,
+		[colours.black] = colours.grey,
+		[colours.transparent] = colours.transparent,
+	},
+
+	Invert = {
+		[colours.white] = colours.black,
+		[colours.orange] = colours.blue,
+		[colours.magenta] = colours.green,
+		[colours.lightBlue] = colours.brown,
+		[colours.yellow] = colours.blue,
+		[colours.lime] = colours.purple,
+		[colours.pink] = colours.green,
+		[colours.grey] = colours.lightGrey,
+		[colours.lightGrey] = colours.grey,
+		[colours.cyan] = colours.red,
+		[colours.purple] = colours.green,
+		[colours.blue] = colours.yellow,
+		[colours.brown] = colours.lightBlue,
+		[colours.green] = colours.purple,
+		[colours.red] = colours.cyan,
+		[colours.black] = colours.white,
+		[colours.transparent] = colours.transparent,
+	},
+}
+
+function FilterColour(colour, filter)
+	if filter[colour] then
+		return filter[colour]
+	else
+		return colours.black
+	end
+end
+
 DrawCharacters = function (x, y, characters, textColour, bgColour)
 	Drawing.WriteStringToBuffer(x, y, tostring(characters), textColour, bgColour)
 end

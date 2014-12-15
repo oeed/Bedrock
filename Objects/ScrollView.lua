@@ -2,6 +2,8 @@ Inherit = 'View'
 ChildOffset = false
 ContentWidth = 0
 ContentHeight = 0
+ScrollBarBackgroundColour = colours.lightGrey
+ScrollBarColour = colours.lightBlue
 
 CalculateContentSize = function(self)
 	local function calculateObject(obj)
@@ -40,6 +42,8 @@ UpdateScroll = function(self)
 				["Y"] = 1,
 				["Width"] = 1,
 				["Height"] = self.Height,
+				["BackgroundColour"] = self.ScrollBarBackgroundColour,
+				["BarColour"] = self.ScrollBarColour,
 				["Z"]=999
 			})
 
@@ -50,7 +54,10 @@ UpdateScroll = function(self)
 				end
 			end
 		end
-		self:GetObject('ScrollViewScrollBar').MaxScroll = self.ContentHeight - self.Height
+
+		if self:GetObject('ScrollViewScrollBar') then
+			self:GetObject('ScrollViewScrollBar').MaxScroll = self.ContentHeight - self.Height
+		end
 	else
 		self:RemoveObject('ScrollViewScrollBar')
 	end
@@ -66,4 +73,5 @@ OnLoad = function(self)
 	if not self.ChildOffset or not self.ChildOffset.X or not self.ChildOffset.Y then
 		self.ChildOffset = {X = 0, Y = 0}
 	end
+	self:UpdateScroll()
 end

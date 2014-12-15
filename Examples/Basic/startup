@@ -9,41 +9,31 @@ program.OnKeyChar = function(self, event, keychar)
 end
 
 program:Run(function()
+	term.setTextColor(colours.black)
+	program:PrepareMenu('optionsmenu')
+
+	program:DisplaySaveFileWindow('Save', function(success, path)
+
+	end, 'skch')
+
+	local i = 0
+	program:GetObject('ViewModeMenuItem').OnClick = function(_self)
+		--Do the related stuff
+		program:GetObject('HelloButton').X = program:GetObject('HelloButton').X + 1
+	end
+
+
 	program:GetObject('HelloButton').OnClick = function(self, event, side, x, y)
-		if self:ToggleMenu({
-			  Type="Menu",
-			  Children={
-			    {
-			      Name="ViewModeMenuItem",
-			      Type="Button",
-			      Text="List View"
-			    },
-			    {
-			      ["Type"]="Separator"
-			    },
-			    {
-			      Name="HiddenFilesMenuItem",
-			      Type="Button",
-			      Text="Show Hidden"
-			    }
-			  },
-			}, x, y) then
+		if self:ToggleMenu('optionsmenu', x, y) then
 			if true then
 				program:GetObject('ViewModeMenuItem').Text = 'Icon View'
 			end
 
-			program:GetObject('ViewModeMenuItem').Click = function()
-				--Do the related stuff
-			end
 
-			program:GetObject('HiddenFilesMenuItem').Click = function()
+			program:GetObject('HiddenFilesMenuItem').OnClick = function()
 				--Do the related stuff
 			end
 		end
 	end
-
-	program:DisplayOpenFileWindow(nil, function(ok, path)
-		error(path)
-	end)
 end)
 

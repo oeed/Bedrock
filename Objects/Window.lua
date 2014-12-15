@@ -7,10 +7,7 @@ Title = ''
 Flashing = false
 CanClose = true
 OnCloseButton = nil
-
-OnLoad = function(self)
-	--self:GetObject('View') = self.Bedrock:ObjectFromFile({Type = 'View',Width = 10, Height = 5, BackgroundColour = colours.red}, self)
-end
+OldActiveObject = nil
 
 LoadView = function(self)
 	local view = self:GetObject('View')
@@ -28,6 +25,7 @@ LoadView = function(self)
 	if self.OnViewLoad then
 		self.OnViewLoad(view)
 	end
+	self.OldActiveObject = self.Bedrock:GetActiveObject()
 	self.Bedrock:SetActiveObject(view)
 end
 
@@ -45,7 +43,7 @@ Flash = function(self)
 end
 
 OnDraw = function(self, x, y)
-	local toolBarColour = (self.Flashing and colours.white or self.ToolBarColour)
+	local toolBarColour = (self.Flashing and colours.grey or self.ToolBarColour)
 	local toolBarTextColour = (self.Flashing and colours.black or self.ToolBarTextColour)
 	if toolBarColour then
 		Drawing.DrawBlankArea(x, y, self.Width, 1, toolBarColour)
@@ -60,6 +58,7 @@ OnDraw = function(self, x, y)
 end
 
 Close = function(self)
+	self.Bedrock:SetActiveObject(self.OldActiveObject)
 	self.Bedrock.Window = nil
 	self.Bedrock:RemoveObject(self)
 	if self.OnClose then
