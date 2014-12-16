@@ -41,7 +41,7 @@ end
 ParseShortcut = function(self)
 	local special = {
 		['^'] = keys.leftShift,
-		['<'] = keys.backspace,
+		['<'] = keys.delete,
 		['>'] = keys.delete,
 		['#'] = keys.leftCtrl,
 		['~'] = keys.leftAlt,
@@ -67,7 +67,9 @@ RegisterShortcut = function(self)
 						self.Parent.Owner.Toggle = false
 					end, 0.3)
 				end
-				self:OnClick('keyboard_shortcut', 1, 1, 1)
+				return self:OnClick('keyboard_shortcut', 1, 1, 1)
+			else
+				return false
 			end
 		end)
 	end

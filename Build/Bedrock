@@ -1,4 +1,4 @@
---Bedrock Build: 429
+--Bedrock Build: 447
 --This code is squished down in to one, rather hard to read file.
 --As such it is not much good for anything other than being loaded as an API.
 --If you want to look at the code to learn from it, copy parts or just take a look,
@@ -1353,7 +1353,7 @@ end
 ParseShortcut = function(self)
 	local special = {
 		['^'] = keys.leftShift,
-		['<'] = keys.backspace,
+		['<'] = keys.delete,
 		['>'] = keys.delete,
 		['#'] = keys.leftCtrl,
 		['~'] = keys.leftAlt,
@@ -1379,7 +1379,9 @@ RegisterShortcut = function(self)
 						self.Parent.Owner.Toggle = false
 					end, 0.3)
 				end
-				self:OnClick('keyboard_shortcut', 1, 1, 1)
+				return self:OnClick('keyboard_shortcut', 1, 1, 1)
+			else
+				return false
 			end
 		end)
 	end
@@ -2395,6 +2397,10 @@ function RegisterKeyboardShortcut(self, keys, func, name)
 end
 
 function TryKeyboardShortcuts(self, keychar)
+	if keychar == keys.backspace then
+		keychar = keys.delete
+	end
+
 	local len = 1 -- + keychar
 	for k, v in pairs(self.ModifierKeys) do
 		len = len + 1
@@ -2409,8 +2415,7 @@ function TryKeyboardShortcuts(self, keychar)
 		end
 
 		if match and #shortcut.Keys == len then
-			shortcut.Function()
-			return true
+			return shortcut.Function() ~= false
 		end
 	end
 end
@@ -2886,14 +2891,19 @@ function DisplayOpenFileWindow(self, title, callback)
 	local separator = '                               !'
 
 	local function addFolder(path, level)
-		for i, v in ipairs(fs.list(path)) do
+		for i, v in ipairs(_fs.list(path)) do
 			local fPath = path .. '/' .. v
-			if fPath ~= '/rom' and fs.isDir(fPath) then
+			if fPath ~= '/rom' and _fs.isDir(fPath) then
 				table.insert(sidebarItems, level .. v..separator..fPath)
 				addFolder(fPath, level .. '  ')
 			end
 		end
 	end
+	
+	if OneOS then
+		_fs = OneOS.FS
+	end
+
 	addFolder('','')
 
 	local currentFolder = ''
@@ -3015,8 +3025,8 @@ function DisplayOpenFileWindow(self, title, callback)
 		currentFolder = path
 
 		local filesListItems = {}
-		for i, v in ipairs(fs.list(path)) do
-			if not fs.isDir(currentFolder .. v) then
+		for i, v in ipairs(_fs.list(path)) do
+			if not _fs.isDir(currentFolder .. v) then
 				table.insert(filesListItems, v)
 			end
 		end
@@ -3029,7 +3039,7 @@ function DisplayOpenFileWindow(self, title, callback)
 	if startPath then
 		goToFolder(startPath)
 	elseif OneOS then
-		goToFolder('/Desktop/')
+		goToFolder('/Desktop/Documents/')
 	else
 		goToFolder('')
 	end
@@ -3038,6 +3048,7 @@ function DisplayOpenFileWindow(self, title, callback)
 end
 
 function DisplaySaveFileWindow(self, title, callback, extension, startPath)
+	local _fs = fs
 	if extension and extension:sub(1,1) ~= '.' then
 		extension = '.' .. extension
 	end
@@ -3057,13 +3068,17 @@ function DisplaySaveFileWindow(self, title, callback, extension, startPath)
 	local separator = '                                                       !'
 
 	local function addFolder(path, level)
-		for i, v in ipairs(fs.list(path)) do
+		for i, v in ipairs(_fs.list(path)) do
 			local fPath = path .. '/' .. v
-			if fPath ~= '/rom' and fs.isDir(fPath) then
+			if fPath ~= '/rom' and _fs.isDir(fPath) then
 				table.insert(sidebarItems, level .. v..separator..fPath)
 				addFolder(fPath, level .. '  ')
 			end
 		end
+	end
+	
+	if OneOS then
+		_fs = OneOS.FS
 	end
 	addFolder('','')
 
@@ -3091,7 +3106,6 @@ function DisplaySaveFileWindow(self, title, callback, extension, startPath)
 			["Height"]=3,
 			["Width"]="100%",
 			["BackgroundColour"]=colours.lightGrey,
-			["Name"]="SidebarListView",
 			["Type"]="View"
 		},
 		{
@@ -3195,7 +3209,7 @@ function DisplaySaveFileWindow(self, title, callback, extension, startPath)
 	if startPath then
 		goToFolder(startPath)
 	elseif OneOS then
-		goToFolder('/Desktop/')
+		goToFolder('/Desktop/Documents/')
 	else
 		goToFolder('')
 	end
