@@ -1,4 +1,4 @@
---Bedrock Build: 447
+--Bedrock Build: 449
 --This code is squished down in to one, rather hard to read file.
 --As such it is not much good for anything other than being loaded as an API.
 --If you want to look at the code to learn from it, copy parts or just take a look,
@@ -926,7 +926,7 @@ local function AddItem(self, v, i)
 		["Name"]="CollectionViewItem",
 		["Type"]="View",
 		["TextColour"]=self.TextColour,
-		["BackgroundColour"]=0F,
+		["BackgroundColour"]=0,
 		OnClick = function(itm)
 			if self.CanSelect then
 				for i2, _v in ipairs(self.Children) do
