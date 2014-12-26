@@ -10,6 +10,7 @@ Name = nil
 ClipDrawing = true
 UpdateDrawBlacklist = {}
 Fixed = false
+Ready = false
 
 DrawCache = {}
 
@@ -177,6 +178,43 @@ Initialise = function(self, values)
 	end
 
 	return new
+end
+
+AnimateValue = function(self, valueName, from, to, duration, done)
+	if type(self[valueName]) ~= 'number' then
+		error('Animated value ('..valueName..') must be number.')
+	elseif not self.Bedrock.AnimationEnabled then
+		self[valueName] = to
+		if done then
+			done()
+		end
+		return
+	end
+	from = from or self[valueName]
+	duration = duration or 0.2
+	local delta = to - from
+
+	local startTime = os.clock()
+	local previousFrame = startTime
+	local frame
+	frame = function()
+		local time = os.clock()
+		local totalTime = time - startTime
+		local isLast = totalTime >= duration
+
+		if isLast then
+			self[valueName] = to
+			if done then
+				done()
+			end
+		else
+			self[valueName] = self.Bedrock.Helpers.Round(from + delta * (totalTime / duration))
+			self.Bedrock:StartTimer(function()
+				frame()
+			end, 0.05)
+		end
+	end
+	frame()
 end
 
 Click = function(self, event, side, x, y)

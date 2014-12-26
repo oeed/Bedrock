@@ -39,7 +39,6 @@ OnDraw = function(self, x, y)
         _x = math.floor((self.Width - #self.Text) / 2)
     end
 
-
 	Drawing.DrawCharacters(x + _x, y-1+math.ceil(self.Height/2), self.Text, txt, bg)
 end
 

@@ -190,7 +190,7 @@ function FilterColour(colour, filter)
 	if filter[colour] then
 		return filter[colour]
 	else
-		return colours.black
+		return colour
 	end
 end
 

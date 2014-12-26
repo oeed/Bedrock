@@ -105,7 +105,20 @@ local function findObjectNamed(view, name, minI)
 	end
 end
 
-function AddObject(self, info, extra)
+function ReorderObjects(self)
+	if self.Children then
+		table.sort(self.Children, function(a,b)
+			return a.Z < b.Z 
+		end)
+		for i, v in ipairs(self.Children) do
+			if v.ReorderObjects then
+				v:ReorderObjects()
+			end
+		end
+	end
+end
+
+function AddObject(self, info, extra, first)
 	if type(info) == 'string' then
 		local h = fs.open(self.Bedrock.ViewPath..info..'.view', 'r')
 		if h then
@@ -126,10 +139,18 @@ function AddObject(self, info, extra)
 
 	local view = self.Bedrock:ObjectFromFile(info, self)
 	if not view.Z then
-		view.Z = #self.Children + 1
+		if first then
+			view.Z = 1
+		else
+			view.Z = #self.Children + 1
+		end
 	end
 	
-	table.insert(self.Children, view)
+	if first then
+		table.insert(self.Children, 1, view)
+	else
+		table.insert(self.Children, view)
+	end
 	if self.Bedrock.View then
 		self.Bedrock:ReorderObjects()
 	end

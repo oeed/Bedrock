@@ -123,6 +123,9 @@ WrapText = function(text, maxWidth)
                     lines[#lines] = lines[#lines] .. word .. space
             end
     end
+    if #lines[1] == 0 then
+        table.remove(lines,1)
+    end
 	return lines
 end
 
