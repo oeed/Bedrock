@@ -35,11 +35,7 @@ Extension = function(path, addDot)
 	if not path then
 		return nil
 	elseif not string.find(fs.getName(path), '%.') then
-		if not addDot then
-			return fs.getName(path)
-		else
-			return ''
-		end
+		return ''
 	else
 		local _path = path
 		if path:sub(#path) == '/' then
@@ -61,7 +57,7 @@ end
 
 RemoveExtension = function(path)
 --local name = string.match(fs.getName(path), '(%a+)%.?.-')
-	if path:sub(1,1) == '.' then
+	if not path:find('%.') then
 		return path
 	end
 	local extension = Helpers.Extension(path)

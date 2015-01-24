@@ -180,17 +180,18 @@ Initialise = function(self, values)
 	return new
 end
 
-AnimateValue = function(self, valueName, from, to, duration, done)
-	if type(self[valueName]) ~= 'number' then
+AnimateValue = function(self, valueName, from, to, duration, done, tbl)
+	tbl = tbl or self
+	if type(tbl[valueName]) ~= 'number' then
 		error('Animated value ('..valueName..') must be number.')
 	elseif not self.Bedrock.AnimationEnabled then
-		self[valueName] = to
+		tbl[valueName] = to
 		if done then
 			done()
 		end
 		return
 	end
-	from = from or self[valueName]
+	from = from or tbl[valueName]
 	duration = duration or 0.2
 	local delta = to - from
 
@@ -203,12 +204,14 @@ AnimateValue = function(self, valueName, from, to, duration, done)
 		local isLast = totalTime >= duration
 
 		if isLast then
-			self[valueName] = to
+			tbl[valueName] = to
+			self:ForceDraw()
 			if done then
 				done()
 			end
 		else
-			self[valueName] = self.Bedrock.Helpers.Round(from + delta * (totalTime / duration))
+			tbl[valueName] = self.Bedrock.Helpers.Round(from + delta * (totalTime / duration))
+			self:ForceDraw()
 			self.Bedrock:StartTimer(function()
 				frame()
 			end, 0.05)

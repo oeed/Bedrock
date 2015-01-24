@@ -12,9 +12,9 @@ program:Run(function()
 	term.setTextColor(colours.black)
 	program:PrepareMenu('optionsmenu')
 
-	program:DisplaySaveFileWindow('Save', function(success, path)
+	-- program:DisplaySaveFileWindow('Save', function(success, path)
 
-	end, 'skch')
+	-- end, 'skch')
 
 	local i = 0
 	program:GetObject('ViewModeMenuItem').OnClick = function(_self)
