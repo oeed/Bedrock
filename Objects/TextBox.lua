@@ -35,10 +35,10 @@ OnDraw = function(self, x, y)
 	end
 
 	if #tostring(text) == 0 then
-		Drawing.DrawCharacters(x + 1, y, self.Placeholder, self.PlaceholderTextColour, self.BackgroundColour)
+		self:DrawPlaceholder(x + 1, y)
 	else
 		if not self.Selected then
-			Drawing.DrawCharacters(x + 1, y, text, self.TextColour, self.BackgroundColour)
+			self:DrawText(x + 1, y, text)
 		else
 			local startPos = self.DragStart - offset
 			local endPos = self.CursorPos - offset
@@ -46,18 +46,30 @@ OnDraw = function(self, x, y)
 				startPos = self.CursorPos - offset
 				endPos = self.DragStart - offset
 			end
-			for i = 1, #text do
-				local char = text:sub(i, i)
-				local textColour = self.TextColour
-				local backgroundColour = self.BackgroundColour
-
-				if i > startPos and i - 1 <= endPos then
-					textColour = self.SelectedTextColour
-					backgroundColour = self.SelectedBackgroundColour
-				end
-				Drawing.DrawCharacters(x + i, y, char, textColour, backgroundColour)
-			end
+			self:DrawSelectedText(x + 1, y, text, startPos, endPos)
 		end
+	end
+end
+
+DrawText = function(self, x, y, text)
+	Drawing.DrawCharacters(x, y, text, self.TextColour, self.BackgroundColour)
+end
+
+DrawPlaceholder = function(self, x, y)
+	Drawing.DrawCharacters(x, y, self.Placeholder, self.PlaceholderTextColour, self.BackgroundColour)
+end
+
+DrawSelectedText = function(self, x, y, text, startPos, endPos)
+	for i = 1, #text do
+		local char = text:sub(i, i)
+		local textColour = self.TextColour
+		local backgroundColour = self.BackgroundColour
+
+		if i > startPos and i - 1 <= endPos then
+			textColour = self.SelectedTextColour
+			backgroundColour = self.SelectedBackgroundColour
+		end
+		Drawing.DrawCharacters(x + i, y, char, textColour, backgroundColour)
 	end
 end
 
@@ -124,7 +136,10 @@ OnKeyChar = function(self, event, keychar)
 		end
 	end
 
-	if event == 'char' then
+	if self.CustomOnKeyChar and self:CustomOnKeyChar(event, keychar) then
+		self:OnChange(event, keychar)
+		return
+	elseif event == 'char' then
 		deleteSelected()
 		if self.Numerical then
 			keychar = tostring(tonumber(keychar))

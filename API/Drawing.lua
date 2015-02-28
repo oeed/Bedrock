@@ -367,21 +367,27 @@ DrawBuffer = function()
 		Restore()
 	end
 
-	for y,row in pairs(Drawing.Buffer) do
-		for x,pixel in pairs(row) do
-			local shouldDraw = true
-			local hasBackBuffer = true
-			if Drawing.BackBuffer[y] == nil or Drawing.BackBuffer[y][x] == nil or #Drawing.BackBuffer[y][x] ~= 3 then
-				hasBackBuffer = false
-			end
-			if hasBackBuffer and Drawing.BackBuffer[y][x][1] == Drawing.Buffer[y][x][1] and Drawing.BackBuffer[y][x][2] == Drawing.Buffer[y][x][2] and Drawing.BackBuffer[y][x][3] == Drawing.Buffer[y][x][3] then
-				shouldDraw = false
-			end
-			if shouldDraw then
-				term.setBackgroundColour(pixel[3])
-				term.setTextColour(pixel[2])
-				term.setCursorPos(x, y)
-				term.write(pixel[1])
+	-- If the program is within OneOS pass our buffer straight to the OS to draw rather than fidling around with the term API
+
+	if OneOS and OneOS.Buffer then
+		Drawing.Buffer = OneOS.Buffer
+	else
+		for y,row in pairs(Drawing.Buffer) do
+			for x,pixel in pairs(row) do
+				local shouldDraw = true
+				local hasBackBuffer = true
+				if Drawing.BackBuffer[y] == nil or Drawing.BackBuffer[y][x] == nil or #Drawing.BackBuffer[y][x] ~= 3 then
+					hasBackBuffer = false
+				end
+				if hasBackBuffer and Drawing.BackBuffer[y][x][1] == Drawing.Buffer[y][x][1] and Drawing.BackBuffer[y][x][2] == Drawing.Buffer[y][x][2] and Drawing.BackBuffer[y][x][3] == Drawing.Buffer[y][x][3] then
+					shouldDraw = false
+				end
+				if shouldDraw then
+					term.setBackgroundColour(pixel[3])
+					term.setTextColour(pixel[2])
+					term.setCursorPos(x, y)
+					term.write(pixel[1])
+				end
 			end
 		end
 	end

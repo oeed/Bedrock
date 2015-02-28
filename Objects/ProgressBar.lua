@@ -33,12 +33,15 @@ OnDraw = function(self, x, y)
 		if type(barColours) == 'number' then
 			barColours = {barColours}
 		end
+
 		local total = 0
 		local _x = x
 		for i, v in ipairs(values) do
-			local width = self.Bedrock.Helpers.Round((v / self.Maximum) * self.Width)
+			local width = (v == 0 and 0 or self.Bedrock.Helpers.Round((v / self.Maximum) * self.Width))
 			total = total + v
-			Drawing.DrawBlankArea(_x, y, width, self.Height, barColours[((i-1)%#barColours)+1])
+			if width ~= 0 then
+				Drawing.DrawBlankArea(_x, y, width, self.Height, barColours[((i-1)%#barColours)+1])
+			end
 			_x = _x + width
 		end
 

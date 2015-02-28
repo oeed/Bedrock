@@ -2,6 +2,7 @@ TextColour = colours.black
 BackgroundColour = colours.transparent
 Text = ""
 AutoWidth = false
+Wrap = true
 Align = 'Left'
 
 local wrapText = function(text, maxWidth)
@@ -39,7 +40,14 @@ OnUpdate = function(self, value)
 end
 
 OnDraw = function(self, x, y)
-	for i, v in ipairs(wrapText(self.Text, self.Width)) do
+    local lines
+    if self.Wrap then
+        lines = wrapText(self.Text, self.Width)
+    else
+        lines = {self.Bedrock.Helpers.TruncateString(self.Text, self.Width)}
+    end
+
+	for i, v in ipairs(lines) do
         local _x = 0
         if self.Align == 'Right' then
             _x = self.Width - #v

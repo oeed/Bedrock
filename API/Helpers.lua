@@ -26,9 +26,11 @@ LongestString = function(input, key, isKey)
 	return length
 end
 
-Split = function(str,sep)
-    sep=sep or'/'
-    return str:match("(.*"..sep..")")
+Split = function(a,e)
+	local t,e=e or":",{}
+	local t=string.format("([^%s]+)",t)
+	a:gsub(t,function(t)e[#e+1]=t end)
+	return e
 end
 
 Extension = function(path, addDot)
@@ -41,13 +43,16 @@ Extension = function(path, addDot)
 		if path:sub(#path) == '/' then
 			_path = path:sub(1,#path-1)
 		end
+
 		local extension = _path:gmatch('%.[0-9a-z]+$')()
 		if extension then
 			extension = extension:sub(2)
+		elseif fs.getName(_path):sub(1,1) == '.' then
+			extension = fs.getName(_path):sub(2)
 		else
-			--extension = nil
 			return ''
 		end
+		
 		if addDot then
 			extension = '.'..extension
 		end
@@ -76,6 +81,11 @@ RemoveFileName = function(path)
 		return v
 	end
 	return v[1]
+end
+
+ParentFolder = function(path)
+	local folderName = fs.getName(path)
+	return path:sub(1, #path-#folderName-1)
 end
 
 TruncateString = function(sString, maxLength)
@@ -127,7 +137,7 @@ end
 
 TidyPath = function(path)
 	path = '/'..path
-	if fs.exists(path) and fs.isDir(path) then
+	if fs.exists(path) and fs.isDir(path) or (OneOS and OneOS.FS.exists(path) and OneOS.FS.isDir(path)) then
 		path = path .. '/'
 	end
 

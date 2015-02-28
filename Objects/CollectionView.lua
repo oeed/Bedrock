@@ -17,18 +17,19 @@ OnDraw = function(self, x, y)
 end
 
 local function MaxIcons(self, obj)
-	local x, y = 2, 1
 	if not obj.Height or not obj.Width then
 		error('You must provide each object\'s height when adding to a CollectionView.')
 	end
 	local slotHeight = obj.Height + self.SpacingY
 	local slotWidth = obj.Width + self.SpacingX
 	local maxX = math.floor((self.Width - 2) / slotWidth)
-	return x, y, maxX, slotWidth, slotHeight
+	return maxX, slotWidth, slotHeight
 end
 
 local function IconLocation(self, obj, i)
-	local x, y, maxX, slotWidth, slotHeight = MaxIcons(self, obj)
+	local maxX, slotWidth, slotHeight = MaxIcons(self, obj)
+	local y = 2
+	local x = 1 + math.ceil((self.Width - slotWidth * maxX) / 2)
 	local rowPos = ((i - 1) % maxX)
 	local colPos = math.ceil(i / maxX) - 1
 	x = x + (slotWidth * rowPos)
@@ -63,7 +64,6 @@ local function AddItem(self, v, i)
    	end
 	self:AddObject(item)
 end
-
 
 UpdateItems = function(self)
 	self:RemoveAllObjects()

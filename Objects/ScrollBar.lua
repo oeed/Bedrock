@@ -42,26 +42,29 @@ OnScroll = function(self, event, direction, x, y)
 	end
 end
 
+-- TODO: this really needs an overhaul
 OnClick = function(self, event, side, x, y)
 	if event == 'mouse_click' then
 		self.ClickPoint = y
 	else
-		local gapHeight = self.Height - (self.Height * (self.Height / (self.Height + self.MaxScroll)))
-		local barHeight = self.Height * (self.Height / (self.Height + self.MaxScroll))
-		--local delta = (self.Height + self.MaxScroll) * ((y - self.ClickPoint) / barHeight)
-		local delta = ((y - self.ClickPoint)/gapHeight)*self.MaxScroll
-		--l(((y - self.ClickPoint)/gapHeight))
-		--l(delta)
-		self.Scroll = self.Bedrock.Helpers.Round(delta)
-		--l(self.Scroll)
-		--l('----')
-		if self.Scroll < 0 then
-			self.Scroll = 0
-		elseif self.Scroll > self.MaxScroll then
-			self.Scroll = self.MaxScroll
-		end
-		if self.OnChange then
-			self:OnChange()
+		if self.ClickPoint then
+			local gapHeight = self.Height - (self.Height * (self.Height / (self.Height + self.MaxScroll)))
+			local barHeight = self.Height * (self.Height / (self.Height + self.MaxScroll))
+			--local delta = (self.Height + self.MaxScroll) * ((y - self.ClickPoint) / barHeight)
+			local delta = ((y - self.ClickPoint)/gapHeight)*self.MaxScroll
+			--l(((y - self.ClickPoint)/gapHeight))
+			--l(delta)
+			self.Scroll = self.Bedrock.Helpers.Round(delta)
+			--l(self.Scroll)
+			--l('----')
+			if self.Scroll < 0 then
+				self.Scroll = 0
+			elseif self.Scroll > self.MaxScroll then
+				self.Scroll = self.MaxScroll
+			end
+			if self.OnChange then
+				self:OnChange()
+			end
 		end
 	end
 
