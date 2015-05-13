@@ -77,7 +77,7 @@ Draw = function(self)
 	if self.Children then
 		for i, child in ipairs(self.Children) do
 			local pos = child:GetOffsetPosition()
-			if pos.Y + self.Height > 1 and pos.Y <= self.Height and pos.X + self.Width > 1 and pos.X <= self.Width then
+			if pos.Y + child.Height > 1 and pos.Y <= self.Height and pos.X + child.Width > 1 and pos.X <= self.Width then
 				child:Draw()
 			end
 		end
