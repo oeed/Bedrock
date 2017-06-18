@@ -1,27 +1,6 @@
 BasePath = ''
 ProgramPath = nil
 
--- Program functions...
-
-local function main(...)
-	-- Code here...
-end
-
--- Run
-local args = {...}
-local _, err = pcall(function() main(unpack(args)) end)
-if err then
-	-- Make a nice error handling screen here...
-	term.setBackgroundColor(colors.black)
-	term.setTextColor(colors.white)
-	term.clear()
-	term.setCursorPos(1, 3)
-	print(" An Error Has Occured! D:\n\n")
-	print(" " .. tostring(err) .. "\n\n")
-	print(" Press any key to exit...")
-	os.pullEvent("key")
-end
-
 function LoadAPIs(self)
 	local function loadAPI(name, content)
 		local env = setmetatable({}, { __index = getfenv() })
@@ -221,10 +200,18 @@ function TryKeyboardShortcuts(self, keychar)
 		len = len + 1
 	end
 
+	if type(keychar) == 'string' then
+		keychar = keychar:lower()
+	end
+
 	for _, shortcut in pairs(self.KeyboardShortcuts) do
 		local match = true
 		for i2, key in ipairs(shortcut.Keys) do
-			if self.ModifierKeys[key] == nil and key ~= keychar then
+			if type(keychar) == 'string' then
+				keychar = keychar:lower()
+			end
+
+			if self.ModifierKeys[key] == nil and key ~= keychar  then
 				match = false
 			end
 		end
@@ -1129,6 +1116,13 @@ function HandleTimer(self, event, timer)
 	end
 end
 
+function HandlePaste(self, event, text)
+	local activeObject = self:GetActiveObject()
+	if activeObject and activeObject.OnPaste then
+		activeObject:OnPaste(event, text)
+	end
+end
+
 function SetActiveObject(self, object)
 	if object then
 		if object ~= self.ActiveObject then
@@ -1163,6 +1157,7 @@ local eventFuncs = {
 	OnScroll = {'mouse_scroll'},
 	HandleClick = {'mouse_click', 'mouse_drag', 'mouse_scroll', 'monitor_touch'},
 	HandleKeyChar = {'key', 'char'},
+	HandlePaste = {'paste'},
 	HandleTimer = {'timer'},
 	HandleDraw = {'bedrock_draw'}
 }
@@ -1218,13 +1213,15 @@ end
 
 function Run(self, ready)
 	-- Bypass the window API
-	if term.native then
-		if type(term.native) == 'function' then
-			term.redirect(term.native())
-		else
-			term.redirect(term.native)
-		end
-	end
+	-- This doesn't really work...
+	-- term.redirect(term.native())
+	-- if term.native then
+	-- 	if type(term.native) == 'function' then
+	-- 		term.redirect(term.native())
+	-- 	else
+	-- 		term.redirect(term.native)
+	-- 	end
+	-- end
 	
 	if not  term.isColour or not term.isColour() then
 		print('This program requires an advanced (golden) comptuer to run, sorry.')

@@ -21,22 +21,22 @@ IgnoreConstraint = false
 function AddConstraint(x, y, width, height)
 	local x2 = x + width - 1
 	local y2 = y + height - 1
-	table.insert(Drawing.Constraints, {x, y, x2, y2})
-	Drawing.GetConstraint()
+	table.insert(Constraints, {x, y, x2, y2})
+	GetConstraint()
 end
 
 function RemoveConstraint()
-	--table.remove(Drawing.Constraints, #Drawing.Constraints)
-	Drawing.Constraints[#Drawing.Constraints] = nil
-	Drawing.GetConstraint()
+	--table.remove(Constraints, #Constraints)
+	Constraints[#Constraints] = nil
+	GetConstraint()
 end
 
 function GetConstraint()
 	local x = 1
 	local y = 1
-	local x2 = Drawing.Screen.Width
-	local y2 = Drawing.Screen.Height
-	for i, c in ipairs(Drawing.Constraints) do
+	local x2 = Screen.Width
+	local y2 = Screen.Height
+	for i, c in ipairs(Constraints) do
 		if x < c[1] then
 			x = c[1]
 		end
@@ -50,15 +50,15 @@ function GetConstraint()
 			y2 = c[4]
 		end
 	end
-	Drawing.CurrentConstraint = {x, y, x2, y2}
+	CurrentConstraint = {x, y, x2, y2}
 end
 
 function WithinContraint(x, y)
-	return Drawing.IgnoreConstraint or
-		  (x >= Drawing.CurrentConstraint[1] and
-		   y >= Drawing.CurrentConstraint[2] and
-		   x <= Drawing.CurrentConstraint[3] and
-		   y <= Drawing.CurrentConstraint[4])
+	return IgnoreConstraint or
+		  (x >= CurrentConstraint[1] and
+		   y >= CurrentConstraint[2] and
+		   x <= CurrentConstraint[3] and
+		   y <= CurrentConstraint[4])
 end
 
 colours.transparent = 0
@@ -215,12 +215,12 @@ function FilterColour(colour, filter)
 end
 
 DrawCharacters = function (x, y, characters, textColour, bgColour)
-	Drawing.WriteStringToBuffer(x, y, tostring(characters), textColour, bgColour)
+	WriteStringToBuffer(x, y, tostring(characters), textColour, bgColour)
 end
 
 DrawBlankArea = function (x, y, w, h, colour)
 	if colour ~= colours.transparent then
-		Drawing.DrawArea (x, y, w, h, " ", 1, colour)
+		DrawArea(x, y, w, h, " ", 1, colour)
 	end
 end
 
@@ -236,7 +236,7 @@ DrawArea = function (x, y, w, h, character, textColour, bgColour)
 		local currX = x + ix - 1
 		for iy = 1, h do
 			local currY = y + iy - 1
-			Drawing.WriteToBuffer(currX, currY, character, textColour, bgColour)
+			WriteToBuffer(currX, currY, character, textColour, bgColour)
 		end
 	end
 end
@@ -254,11 +254,11 @@ DrawImage = function(_x,_y,tImage, w, h)
 				local bgColour = tImage[y][x]
 	            local textColour = tImage.textcol[y][x] or colours.white
 	            local char = tImage.text[y][x]
-	            Drawing.WriteToBuffer(x+_x-1, y+_y-1, char, textColour, bgColour)
+	            WriteToBuffer(x+_x-1, y+_y-1, char, textColour, bgColour)
 			end
 		end
 	elseif w and h then
-		Drawing.DrawBlankArea(_x, _y, w, h, colours.lightGrey)
+		DrawBlankArea(_x, _y, w, h, colours.lightGrey)
 	end
 end
 
@@ -297,13 +297,13 @@ LoadImage = function(path, global)
                     elseif nextChar:byte() == 31 then
                             fgNext = true
                     elseif bgNext then
-                            currBG = Drawing.GetColour(nextChar)
+                            currBG = GetColour(nextChar)
 		                    if currBG == nil then
 		                    	currBG = colours.transparent
 		                    end
                             bgNext = false
                     elseif fgNext then
-                            currFG = Drawing.GetColour(nextChar)
+                            currFG = GetColour(nextChar)
 		                    if currFG == nil or currFG == colours.transparent then
 		                    	currFG = colours.white
 		                    end
@@ -329,14 +329,14 @@ LoadImage = function(path, global)
 end
 
 DrawCharactersCenter = function(x, y, w, h, characters, textColour,bgColour)
-	w = w or Drawing.Screen.Width
-	h = h or Drawing.Screen.Height
+	w = w or Screen.Width
+	h = h or Screen.Height
 	x = x or 0
 	y = y or 0
 	x = math.floor((w - #characters) / 2) + x
 	y = math.floor(h / 2) + y
 
-	Drawing.DrawCharacters(x, y, characters, textColour, bgColour)
+	DrawCharacters(x, y, characters, textColour, bgColour)
 end
 
 GetColour = function(hex)
@@ -351,11 +351,14 @@ end
 
 Clear = function (_colour)
 	_colour = _colour or colours.black
-	Drawing.DrawBlankArea(1, 1, Drawing.Screen.Width, Drawing.Screen.Height, _colour)
+	DrawBlankArea(1, 1, Screen.Width, Screen.Height, _colour)
 end
 
 Buffer = {}
 BackBuffer = {}
+
+local buffer = Buffer
+local backBuffer = BackBuffer
 
 TryRestore = false
 
@@ -370,16 +373,16 @@ DrawBuffer = function()
 	-- If the program is within OneOS pass our buffer straight to the OS to draw rather than fidling around with the term API
 
 	if OneOS and OneOS.Buffer then
-		Drawing.Buffer = OneOS.Buffer
+		buffer = OneOS.Buffer
 	else
-		for y,row in pairs(Drawing.Buffer) do
+		for y,row in pairs(buffer) do
 			for x,pixel in pairs(row) do
 				local shouldDraw = true
 				local hasBackBuffer = true
-				if Drawing.BackBuffer[y] == nil or Drawing.BackBuffer[y][x] == nil or #Drawing.BackBuffer[y][x] ~= 3 then
+				if BackBuffer[y] == nil or BackBuffer[y][x] == nil or #BackBuffer[y][x] ~= 3 then
 					hasBackBuffer = false
 				end
-				if hasBackBuffer and Drawing.BackBuffer[y][x][1] == Drawing.Buffer[y][x][1] and Drawing.BackBuffer[y][x][2] == Drawing.Buffer[y][x][2] and Drawing.BackBuffer[y][x][3] == Drawing.Buffer[y][x][3] then
+				if hasBackBuffer and BackBuffer[y][x][1] == buffer[y][x][1] and BackBuffer[y][x][2] == buffer[y][x][2] and BackBuffer[y][x][3] == buffer[y][x][3] then
 					shouldDraw = false
 				end
 				if shouldDraw then
@@ -391,23 +394,23 @@ DrawBuffer = function()
 			end
 		end
 	end
-	Drawing.BackBuffer = Drawing.Buffer
-	Drawing.Buffer = {}
+	BackBuffer = buffer
+	buffer = {}
 end
 
 ClearBuffer = function()
-	Drawing.Buffer = {}
+	buffer = {}
 end
 
 WriteStringToBuffer = function (x, y, characters, textColour,bgColour)
 	for i = 1, #characters do
 		local character = characters:sub(i,i)
-		Drawing.WriteToBuffer(x + i - 1, y, character, textColour, bgColour)
+		WriteToBuffer(x + i - 1, y, character, textColour, bgColour)
 	end
 end
 
 WriteToBuffer = function(x, y, character, textColour,bgColour, cached)
-	if not cached and not Drawing.WithinContraint(x, y) then
+	if not cached and not WithinContraint(x, y) then
 		return
 	end
 	x = round(x)
@@ -418,13 +421,13 @@ WriteToBuffer = function(x, y, character, textColour,bgColour, cached)
 	end
 
 	if bgColour == colours.transparent then
-		Drawing.Buffer[y] = Drawing.Buffer[y] or {}
-		Drawing.Buffer[y][x] = Drawing.Buffer[y][x] or {"", colours.white, colours.black}
-		Drawing.Buffer[y][x][1] = character
-		Drawing.Buffer[y][x][2] = textColour
+		buffer[y] = buffer[y] or {}
+		buffer[y][x] = buffer[y][x] or {"", colours.white, colours.black}
+		buffer[y][x][1] = character
+		buffer[y][x][2] = textColour
 	else
-		Drawing.Buffer[y] = Drawing.Buffer[y] or {}
-		Drawing.Buffer[y][x] = {character, textColour, bgColour}
+		buffer[y] = buffer[y] or {}
+		buffer[y][x] = {character, textColour, bgColour}
 	end
 
 	if copyBuffer then
