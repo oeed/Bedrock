@@ -62,6 +62,12 @@ Draw = function(self)
 
 	self.DrawCache.NeedsDraw = false
 	local pos = self:GetPosition()
+	local c = Drawing.CurrentConstraint
+
+	if pos.X + self.Width <= c[1] or pos.Y + self.Height <= c[2] or pos.X > c[3] or pos.Y > c[4] then
+		return
+	end
+	
 	Drawing.StartCopyBuffer()
 
 	if self.ClipDrawing then
